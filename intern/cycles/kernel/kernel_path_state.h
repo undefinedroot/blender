@@ -66,8 +66,8 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
   }
 #endif
   float wavelength_offset = path_state_rng_1D(kg, state, PRNG_WAVELENGTH);
-  float offset_two = fmod(wavelength_offset + (1.0f / 3.0f), 1.0f);
-  float offset_three = fmod(wavelength_offset + (2.0f / 3.0f), 1.0f);
+  float offset_two = (float)fmod((float)wavelength_offset + (float)(1.0f / 3.0f), 1.0f);
+  float offset_three = (float)fmod((float)wavelength_offset + (float)(2.0f / 3.0f), 1.0f);
   state->wavelengths = make_float3(
     (wavelength_offset * 350) + 380,
     (offset_two * 350) + 380,
