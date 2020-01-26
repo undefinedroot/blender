@@ -1,0 +1,7 @@
+before_install:
+  echo "Hello World!"
+addons:
+  apt:
+    packages:
+    - cmake
+    - time
