@@ -1,2 +1,7 @@
 language: cpp
+compiler: gcc
+
+script:
+  -cmake -DWITH_MOD_OCEANSIM=OFF
+  -make -j10
 
