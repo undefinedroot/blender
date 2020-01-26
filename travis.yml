@@ -1,13 +1,1 @@
-
 language: cpp
-
-git:
-  depth: 1
-
-before_install:
-  echo "Hello World!"
-
-addons:
-  apt:
-    packages:
-    - cmake
