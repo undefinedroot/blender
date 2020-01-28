@@ -503,36 +503,39 @@ typedef ccl_addr_space struct PathRadianceState {
 #endif
 } PathRadianceState;
 
+/**
+ * SpectralColor for each light path
+ **/
 typedef ccl_addr_space struct PathRadiance {
 #ifdef __PASSES__
   int use_light_pass;
 #endif
 
   float transparent;
-  SceneLinearColor emission;
+  SpectralColor emission;
 #ifdef __PASSES__
-  SceneLinearColor background;
-  SceneLinearColor ao;
+  SpectralColor background;
+  SpectralColor ao;
 
-  SceneLinearColor indirect;
-  SceneLinearColor direct_emission;
+  SpectralColor indirect;
+  SpectralColor direct_emission;
 
-  SceneLinearColor color_diffuse;
-  SceneLinearColor color_glossy;
-  SceneLinearColor color_transmission;
-  SceneLinearColor color_subsurface;
+  SpectralColor color_diffuse;
+  SpectralColor color_glossy;
+  SpectralColor color_transmission;
+  SpectralColor color_subsurface;
 
-  SceneLinearColor direct_diffuse;
-  SceneLinearColor direct_glossy;
-  SceneLinearColor direct_transmission;
-  SceneLinearColor direct_subsurface;
-  SceneLinearColor direct_scatter;
+  SpectralColor direct_diffuse;
+  SpectralColor direct_glossy;
+  SpectralColor direct_transmission;
+  SpectralColor direct_subsurface;
+  SpectralColor direct_scatter;
 
-  SceneLinearColor indirect_diffuse;
-  SceneLinearColor indirect_glossy;
-  SceneLinearColor indirect_transmission;
-  SceneLinearColor indirect_subsurface;
-  SceneLinearColor indirect_scatter;
+  SpectralColor indirect_diffuse;
+  SpectralColor indirect_glossy;
+  SpectralColor indirect_transmission;
+  SpectralColor indirect_subsurface;
+  SpectralColor indirect_scatter;
 
   float4 shadow;
   float mist;
@@ -567,7 +570,7 @@ typedef ccl_addr_space struct PathRadiance {
 
 #ifdef __DENOISING_FEATURES__
   float3 denoising_normal;
-  SceneLinearColor denoising_albedo;
+  SpectralColor denoising_albedo;
   float denoising_depth;
 #endif /* __DENOISING_FEATURES__ */
 
@@ -590,7 +593,7 @@ typedef struct BsdfEval {
   SpectralColor scatter;
 #endif
 #ifdef __SHADOW_TRICKS__
-  float3 sum_no_mis;
+  SpectralColor sum_no_mis;
 #endif
 } BsdfEval;
 
@@ -1014,7 +1017,7 @@ typedef ccl_addr_space struct ccl_align(16) ShaderData
 
   /* Closure weights summed directly, so we can evaluate
    * emission and shadow transparency with MAX_CLOSURE 0. */
-  float3 closure_emission_background;
+  SceneLinearColor closure_emission_background;
   float3 closure_transparent_extinction;
 
   /* At the end so we can adjust size in ShaderDataTinyStorage. */
