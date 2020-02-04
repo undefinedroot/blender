@@ -32,6 +32,7 @@
 #include "kernel/closure/bsdf_principled_sheen.h"
 #include "kernel/closure/bssrdf.h"
 #include "kernel/closure/volume.h"
+#include "kernel/kernel_color.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -460,14 +461,14 @@ ccl_device
 #else
 ccl_device_inline
 #endif
-    SceneLinearColor
+    RGBColor
     bsdf_eval(KernelGlobals *kg,
               ShaderData *sd,
               const ShaderClosure *sc,
               const float3 omega_in,
               float *pdf)
 {
-  SceneLinearColor eval;
+  RGBColor eval;
 
   if (dot(sd->Ng, omega_in) >= 0.0f) {
     switch (sc->type) {
