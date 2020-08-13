@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_STUDIOLIGHT_H__
-#define __BKE_STUDIOLIGHT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -31,6 +30,10 @@
 #include "BLI_path_util.h"
 
 #include "DNA_userdef_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct ImBuf;
 
@@ -161,4 +164,6 @@ void BKE_studiolight_set_free_function(StudioLight *sl,
                                        void *data);
 void BKE_studiolight_unset_icon_id(StudioLight *sl, int icon_id);
 
-#endif /*  __BKE_STUDIOLIGHT_H__ */
+#ifdef __cplusplus
+}
+#endif

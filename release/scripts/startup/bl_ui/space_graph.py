@@ -171,14 +171,10 @@ class GRAPH_MT_select(Menu):
 
         layout.separator()
 
-        props = layout.operator("graph.select_box")
-        props.axis_range = False
-        props.include_handles = False
+        layout.operator("graph.select_box")
         props = layout.operator("graph.select_box", text="Box Select (Axis Range)")
         props.axis_range = True
-        props.include_handles = False
         props = layout.operator("graph.select_box", text="Box Select (Include Handles)")
-        props.axis_range = False
         props.include_handles = True
 
         layout.operator("graph.select_circle")
@@ -297,7 +293,7 @@ class GRAPH_MT_key(Menu):
 
         # Using the modal operation doesn't make sense for this variant
         # as we do not have a modal mode for it, so just execute it.
-        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("graph.decimate", text="Decimate (Allowed Change)").mode = 'ERROR'
         layout.operator_context = operator_context
 

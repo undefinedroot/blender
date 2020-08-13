@@ -14,12 +14,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_DELAUNAY_2D_H__
-#define __BLI_DELAUNAY_2D_H__
+#pragma once
 
 /** \file
  * \ingroup bli
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Interface for Constrained Delaunay Triangulation (CDT) in 2D.
@@ -104,6 +107,11 @@
  * If zero is supplied for epsilon, an internal value of 1e-8 used
  * instead, since this code will not work correctly if it is not allowed
  * to merge "too near" vertices.
+ *
+ * Normally, if epsilon is non-zero, there is an "input modify" pass which
+ * checks to see if some vertices are within epsilon of other edges, and
+ * snapping them to those edges if so. You can skip this pass by setting
+ * skip_input_modify to true. (This is also useful in some unit tests.)
  */
 typedef struct CDT_input {
   int verts_len;
@@ -115,6 +123,7 @@ typedef struct CDT_input {
   int *faces_start_table;
   int *faces_len_table;
   float epsilon;
+  bool skip_input_modify;
 } CDT_input;
 
 /**
@@ -196,4 +205,6 @@ CDT_result *BLI_delaunay_2d_cdt_calc(const CDT_input *input, const CDT_output_ty
 
 void BLI_delaunay_2d_cdt_free(CDT_result *result);
 
-#endif /* __BLI_DELAUNAY_2D_H__ */
+#ifdef __cplusplus
+}
+#endif

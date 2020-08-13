@@ -21,37 +21,38 @@
  * \ingroup bke
  */
 
-#include <string.h>
+#include <assert.h>
 #include <float.h>
 #include <math.h>
 #include <memory.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
-#include <assert.h>
 
-#include "DNA_object_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
-#include "BLI_task.h"
 #include "BLI_math_solvers.h"
+#include "BLI_task.h"
+#include "BLI_utildefines.h"
 
-#include "BKE_context.h"
-#include "BKE_shrinkwrap.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_cdderivedmesh.h"
+#include "BKE_context.h"
 #include "BKE_lattice.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_modifier.h"
+#include "BKE_shrinkwrap.h"
 
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h" /* for OMP limits. */
-#include "BKE_subsurf.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_mesh_wrapper.h"
+#include "BKE_subsurf.h"
 
 #include "DEG_depsgraph_query.h"
 
@@ -115,7 +116,16 @@ bool BKE_shrinkwrap_init_tree(
 {
   memset(data, 0, sizeof(*data));
 
-  if (!mesh || mesh->totvert <= 0) {
+  if (mesh == NULL) {
+    return false;
+  }
+
+  /* We could create a BVH tree from the edit mesh,
+   * however accessing normals from the face/loop normals gets more involved.
+   * Convert mesh data since this isn't typically used in edit-mode. */
+  BKE_mesh_wrapper_ensure_mdata(mesh);
+
+  if (mesh->totvert <= 0) {
     return false;
   }
 
@@ -126,30 +136,29 @@ bool BKE_shrinkwrap_init_tree(
 
     return data->bvh != NULL;
   }
-  else {
-    if (mesh->totpoly <= 0) {
-      return false;
-    }
 
-    data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRI, 4);
-
-    if (data->bvh == NULL) {
-      return false;
-    }
-
-    if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
-      data->pnors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
-      if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
-        data->clnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
-      }
-    }
-
-    if (shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
-      data->boundary = mesh->runtime.shrinkwrap_data;
-    }
-
-    return true;
+  if (mesh->totpoly <= 0) {
+    return false;
   }
+
+  data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRI, 4);
+
+  if (data->bvh == NULL) {
+    return false;
+  }
+
+  if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
+    data->pnors = CustomData_get_layer(&mesh->pdata, CD_NORMAL);
+    if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
+      data->clnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+    }
+  }
+
+  if (shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
+    data->boundary = mesh->runtime.shrinkwrap_data;
+  }
+
+  return true;
 }
 
 /* Frees the tree data if necessary. */
@@ -355,7 +364,7 @@ static void shrinkwrap_calc_nearest_vertex_cb_ex(void *__restrict userdata,
 
   float *co = calc->vertexCos[i];
   float tmp_co[3];
-  float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+  float weight = BKE_defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
   if (calc->invert_vgroup) {
     weight = 1.0f - weight;
@@ -443,7 +452,7 @@ bool BKE_shrinkwrap_project_normal(char options,
                                    BVHTreeRayHit *hit)
 {
   /* don't use this because this dist value could be incompatible
-   * this value used by the callback for comparing prev/new dist values.
+   * this value used by the callback for comparing previous/new dist values.
    * also, at the moment there is no need to have a corrected 'dist' value */
   // #define USE_DIST_CORRECT
 
@@ -527,7 +536,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex(void *__restrict userdata,
   const float proj_limit_squared = calc->smd->projLimit * calc->smd->projLimit;
   float *co = calc->vertexCos[i];
   float tmp_co[3], tmp_no[3];
-  float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+  float weight = BKE_defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
   if (calc->invert_vgroup) {
     weight = 1.0f - weight;
@@ -751,7 +760,7 @@ static void target_project_tri_deviation(void *userdata, const float x[3], float
 {
   TargetProjectTriData *data = userdata;
 
-  float w[3] = {x[0], x[1], 1.0f - x[0] - x[1]};
+  const float w[3] = {x[0], x[1], 1.0f - x[0] - x[1]};
   interp_v3_v3v3v3(data->co_interp, data->vtri_co[0], data->vtri_co[1], data->vtri_co[2], w);
   interp_v3_v3v3v3(data->no_interp, data->vtri_no[0], data->vtri_no[1], data->vtri_no[2], w);
 
@@ -1130,7 +1139,7 @@ static void shrinkwrap_calc_nearest_surface_point_cb_ex(void *__restrict userdat
 
   float *co = calc->vertexCos[i];
   float tmp_co[3];
-  float weight = defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
+  float weight = BKE_defvert_array_find_weight_safe(calc->dvert, i, calc->vgroup);
 
   if (calc->invert_vgroup) {
     weight = 1.0f - weight;

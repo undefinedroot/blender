@@ -17,14 +17,17 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_ICONS_H__
-#define __BKE_ICONS_H__
+#pragma once
 
 /** \file
  * \ingroup bke
  *
  * Resizable Icons for Blender
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef void (*DrawInfoFreeFP)(void *drawinfo);
 
@@ -166,4 +169,6 @@ int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32
 
-#endif /*  __BKE_ICONS_H__ */
+#ifdef __cplusplus
+}
+#endif

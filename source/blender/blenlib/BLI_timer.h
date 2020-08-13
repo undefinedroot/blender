@@ -17,14 +17,17 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_TIMER_H__
-#define __BLI_TIMER_H__
+#pragma once
 
 #include "BLI_sys_types.h"
 
 /** \file
  * \ingroup BLI
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* ret < 0: the timer will be removed.
  * ret >= 0: the timer will be called again in ret seconds */
@@ -54,4 +57,6 @@ void BLI_timer_free(void);
  * is properly configured for the new file. */
 void BLI_timer_on_file_load(void);
 
-#endif /* __BLI_TIMER_H__ */
+#ifdef __cplusplus
+}
+#endif

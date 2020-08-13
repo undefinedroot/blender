@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_BOID_TYPES_H__
-#define __DNA_BOID_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 
@@ -54,7 +53,6 @@ typedef enum eBoidRuleType {
   /** move next to a deflector object's in direction of it's tangent */
   eBoidRuleType_FollowWall = 12,
 #endif
-  NUM_BOID_RULE_TYPES,
 } eBoidRuleType;
 
 /* boidrule->flag */
@@ -108,7 +106,6 @@ typedef enum eBoidMode {
   eBoidMode_Climbing = 2,
   eBoidMode_Falling = 3,
   eBoidMode_Liftoff = 4,
-  NUM_BOID_MODES,
 } eBoidMode;
 
 typedef struct BoidData {
@@ -149,7 +146,6 @@ typedef enum eBoidRulesetType {
   eBoidRulesetType_Fuzzy = 0,
   eBoidRulesetType_Random = 1,
   eBoidRulesetType_Average = 2,
-  NUM_BOID_RULESET_TYPES,
 } eBoidRulesetType;
 #define BOIDSTATE_CURRENT 1
 typedef struct BoidState {
@@ -226,5 +222,3 @@ typedef struct BoidSettings {
 //#define BOID_RULE_LAND            (1 << 3)        /* goal */
 //#define BOID_RULE_WITH_BOIDS      (1 << 4)        /* avoid collision */
 //#define BOID_RULE_WITH_DEFLECTORS (1 << 5)    /* avoid collision */
-
-#endif

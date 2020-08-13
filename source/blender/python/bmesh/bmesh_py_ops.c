@@ -26,15 +26,15 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
+#include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "bmesh.h"
 
-#include "bmesh_py_ops_call.h"
 #include "bmesh_py_ops.h" /* own include */
+#include "bmesh_py_ops_call.h"
 
 /* bmesh operator 'bmesh.ops.*' callable types
  * ******************************************* */
@@ -250,17 +250,15 @@ static PyObject *bpy_bmesh_ops_fakemod_getattro(PyObject *UNUSED(self), PyObject
   if (BMO_opcode_from_opname(opname) != -1) {
     return bpy_bmesh_op_CreatePyObject(opname);
   }
-  else {
-    PyErr_Format(
-        PyExc_AttributeError, "BMeshOpsModule: operator \"%.200s\" doesn't exist", opname);
-    return NULL;
-  }
+
+  PyErr_Format(PyExc_AttributeError, "BMeshOpsModule: operator \"%.200s\" doesn't exist", opname);
+  return NULL;
 }
 
 static PyObject *bpy_bmesh_ops_fakemod_dir(PyObject *UNUSED(self))
 {
-  const unsigned int tot = bmo_opdefines_total;
-  unsigned int i;
+  const uint tot = bmo_opdefines_total;
+  uint i;
   PyObject *ret;
 
   ret = PyList_New(bmo_opdefines_total);

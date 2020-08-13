@@ -30,16 +30,16 @@
 #include "DNA_anim_types.h"
 #include "DNA_movieclip_types.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
 #include "BKE_fcurve.h"
-#include "BKE_tracking.h"
 #include "BKE_movieclip.h"
+#include "BKE_tracking.h"
 
 #include "RNA_access.h"
 
@@ -243,7 +243,7 @@ static bool reconstruct_retrieve_libmv_tracks(MovieReconstructContext *context,
 
   if (reconstruction->camnr) {
     int size = reconstruction->camnr * sizeof(MovieReconstructedCamera);
-    reconstruction->cameras = MEM_callocN(size, "reconstructed camera");
+    reconstruction->cameras = MEM_mallocN(size, "reconstructed camera");
     memcpy(reconstruction->cameras, reconstructed, size);
   }
 
@@ -335,7 +335,7 @@ bool BKE_tracking_reconstruction_check(MovieTracking *tracking,
     /* TODO: check for number of tracks? */
     return true;
   }
-  else if ((tracking->settings.reconstruction_flag & TRACKING_USE_KEYFRAME_SELECTION) == 0) {
+  if ((tracking->settings.reconstruction_flag & TRACKING_USE_KEYFRAME_SELECTION) == 0) {
     /* automatic keyframe selection does not require any pre-process checks */
     if (reconstruct_count_tracks_on_both_keyframes(tracking, object) < 8) {
       BLI_strncpy(error_msg,
@@ -600,7 +600,7 @@ static void tracking_scale_reconstruction(ListBase *tracksbase,
     sub_v3_v3(camera->mat[3], first_camera_delta);
   }
 
-  for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
+  LISTBASE_FOREACH (MovieTrackingTrack *, track, tracksbase) {
     if (track->flag & TRACK_HAS_BUNDLE) {
       mul_v3_v3(track->bundle_pos, scale);
       sub_v3_v3(track->bundle_pos, first_camera_delta);

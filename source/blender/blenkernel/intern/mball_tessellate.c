@@ -21,29 +21,30 @@
  * \ingroup bke
  */
 
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
-#include <stdlib.h>
 #include <ctype.h>
 #include <float.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_memarena.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
-#include "BLI_memarena.h"
 
 #include "BKE_global.h"
 
 #include "BKE_displist.h"
 #include "BKE_mball_tessellate.h" /* own include */
+#include "BKE_object.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
@@ -314,7 +315,7 @@ static float densfunc(const MetaElem *ball, float x, float y, float z)
   float dist2;
   float dvec[3] = {x, y, z};
 
-  mul_m4_v3((float(*)[4])ball->imat, dvec);
+  mul_m4_v3((const float(*)[4])ball->imat, dvec);
 
   switch (ball->type) {
     case MB_BALL:
@@ -1191,6 +1192,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
   int obnr, zero_size = 0;
   char obname[MAX_ID_NAME];
   SceneBaseIter iter;
+  const eEvaluationMode deg_eval_mode = DEG_get_mode(depsgraph);
+  const short parenting_dupli_transflag = (OB_DUPLIFACES | OB_DUPLIVERTS);
 
   copy_m4_m4(obmat, ob->obmat); /* to cope with duplicators from BKE_scene_base_iter_next */
   invert_m4_m4(obinv, ob->obmat);
@@ -1203,6 +1206,14 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
     if (bob->type == OB_MBALL) {
       zero_size = 0;
       ml = NULL;
+
+      /* If this metaball is the original that's used for duplication, only have it it visible when
+       * the instancer is visible too. */
+      if ((base->flag_legacy & OB_FROMDUPLI) == 0 && ob->parent != NULL &&
+          (ob->parent->transflag & parenting_dupli_transflag) != 0 &&
+          (BKE_object_visibility(ob->parent, deg_eval_mode) & OB_VISIBLE_SELF) == 0) {
+        continue;
+      }
 
       if (bob == ob && (base->flag_legacy & OB_FROMDUPLI) == 0) {
         mb = ob->data;
@@ -1265,8 +1276,8 @@ static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Obje
             new_ml = BLI_memarena_alloc(process->pgn_elements, sizeof(MetaElem));
             *(new_ml) = *ml;
             new_ml->bb = BLI_memarena_alloc(process->pgn_elements, sizeof(BoundBox));
-            new_ml->mat = BLI_memarena_alloc(process->pgn_elements, 4 * 4 * sizeof(float));
-            new_ml->imat = BLI_memarena_alloc(process->pgn_elements, 4 * 4 * sizeof(float));
+            new_ml->mat = BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4]));
+            new_ml->imat = BLI_memarena_alloc(process->pgn_elements, sizeof(float[4][4]));
 
             /* too big stiffness seems only ugly due to linear interpolation
              * no need to have possibility for too big stiffness */

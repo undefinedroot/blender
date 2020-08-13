@@ -18,8 +18,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_MESH_DEFAULTS_H__
-#define __DNA_MESH_DEFAULTS_H__
+#pragma once
 
 /* Struct members on own line. */
 /* clang-format off */
@@ -35,11 +34,11 @@
     .texflag = ME_AUTOSPACE, \
     .remesh_voxel_size = 0.1f, \
     .remesh_voxel_adaptivity = 0.0f, \
+    .face_sets_color_seed = 0, \
+    .face_sets_color_default = 1, \
     .flag = ME_REMESH_FIX_POLES | ME_REMESH_REPROJECT_VOLUME, \
   }
 
 /** \} */
 
 /* clang-format on */
-
-#endif /* __DNA_MESH_DEFAULTS_H__ */

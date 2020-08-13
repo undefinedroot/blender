@@ -29,16 +29,16 @@
 
 #include "RNA_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
+#include "../generic/py_capi_utils.h"
+#include "../generic/python_utildefines.h"
 #include "BPY_extern.h"
+#include "bpy_capi_utils.h"
 #include "bpy_operator.h"
 #include "bpy_operator_wrap.h"
 #include "bpy_rna.h" /* for setting arg props only - pyrna_py_to_prop() */
-#include "bpy_capi_utils.h"
-#include "../generic/py_capi_utils.h"
-#include "../generic/python_utildefines.h"
 
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -50,8 +50,8 @@
 
 #include "BLI_ghash.h"
 
-#include "BKE_report.h"
 #include "BKE_context.h"
+#include "BKE_report.h"
 
 /* so operators called can spawn threads which acquire the GIL */
 #define BPY_RELEASE_GIL
@@ -227,7 +227,14 @@ static PyObject *pyop_call(PyObject *UNUSED(self), PyObject *args)
 
   context_dict_back = CTX_py_dict_get(C);
 
-  CTX_py_dict_set(C, (void *)context_dict);
+  /**
+   * It might be that there is already a Python context override. We don't want to remove that
+   * except when this operator call sets a new override explicitly. This is necessary so that
+   * called operator runs in the same context as the calling code by default.
+   */
+  if (context_dict != NULL) {
+    CTX_py_dict_set(C, (void *)context_dict);
+  }
   Py_XINCREF(context_dict); /* so we done loose it */
 
   if (WM_operator_poll_context((bContext *)C, ot, context) == false) {

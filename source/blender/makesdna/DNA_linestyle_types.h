@@ -17,15 +17,14 @@
  * All rights reserved.
  */
 
-#ifndef __DNA_LINESTYLE_TYPES_H__
-#define __DNA_LINESTYLE_TYPES_H__
+#pragma once
 
 /** \file
  * \ingroup DNA
  */
 
-#include "DNA_listBase.h"
 #include "DNA_ID.h"
+#include "DNA_listBase.h"
 
 #ifndef MAX_MTEX
 #  define MAX_MTEX 18
@@ -576,5 +575,3 @@ typedef struct FreestyleLineStyle {
   ListBase thickness_modifiers;
   ListBase geometry_modifiers;
 } FreestyleLineStyle;
-
-#endif

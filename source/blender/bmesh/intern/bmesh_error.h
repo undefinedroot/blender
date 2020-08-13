@@ -14,12 +14,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_ERROR_H__
-#define __BMESH_ERROR_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
  */
+
+#include "bmesh_operator_api.h"
 
 /*----------- bmop error system ----------*/
 
@@ -54,13 +55,8 @@ void BMO_error_clear(BMesh *bm);
 
 /*error messages*/
 enum {
-  BMERR_SELF_INTERSECTING = 1,
-  BMERR_DISSOLVEDISK_FAILED,
-  BMERR_CONNECTVERT_FAILED,
-  BMERR_WALKER_FAILED,
+  BMERR_CONNECTVERT_FAILED = 1,
   BMERR_DISSOLVEFACES_FAILED,
-  BMERR_TESSELLATION,
-  BMERR_NONMANIFOLD,
   BMERR_INVALID_SELECTION,
   BMERR_MESH_ERROR,
   BMERR_CONVEX_HULL_FAILED,
@@ -87,5 +83,3 @@ enum {
                     _BMESH_DUMMY_ABORT(), \
                     NULL)) : \
                   NULL)
-
-#endif /* __BMESH_ERROR_H__ */

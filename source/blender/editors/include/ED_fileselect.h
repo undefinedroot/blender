@@ -21,11 +21,15 @@
  * \ingroup editors
  */
 
-#ifndef __ED_FILESELECT_H__
-#define __ED_FILESELECT_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct ARegion;
 struct FileSelectParams;
+struct Scene;
 struct ScrArea;
 struct SpaceFile;
 struct bContext;
@@ -101,16 +105,16 @@ struct FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile);
 short ED_fileselect_set_params(struct SpaceFile *sfile);
 void ED_fileselect_set_params_from_userdef(struct SpaceFile *sfile);
 void ED_fileselect_params_to_userdef(struct SpaceFile *sfile,
-                                     int temp_win_size[],
+                                     const int temp_win_size[],
                                      const bool is_maximized);
 
 void ED_fileselect_reset_params(struct SpaceFile *sfile);
 
-void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar);
+void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *region);
 
-FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
+FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *region);
 
-int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *ar);
+int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *region);
 int ED_fileselect_layout_offset(FileLayout *layout, int x, int y);
 FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const struct rcti *rect);
 
@@ -129,9 +133,13 @@ void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y);
 
 void ED_operatormacros_file(void);
 
-void ED_fileselect_clear(struct wmWindowManager *wm, struct ScrArea *sa, struct SpaceFile *sfile);
+void ED_fileselect_clear(struct wmWindowManager *wm,
+                         struct Scene *owner_scene,
+                         struct SpaceFile *sfile);
 
-void ED_fileselect_exit(struct wmWindowManager *wm, struct ScrArea *sa, struct SpaceFile *sfile);
+void ED_fileselect_exit(struct wmWindowManager *wm,
+                        struct Scene *owner_scene,
+                        struct SpaceFile *sfile);
 
 void ED_fileselect_window_params_get(const struct wmWindow *win,
                                      int win_size[2],
@@ -167,6 +175,8 @@ typedef enum FSMenuCategory {
   FS_CATEGORY_SYSTEM_BOOKMARKS,
   FS_CATEGORY_BOOKMARKS,
   FS_CATEGORY_RECENT,
+  /* For internal use, a list of known paths that are used to match paths to icons and names. */
+  FS_CATEGORY_OTHER,
 } FSMenuCategory;
 
 typedef enum FSMenuInsert {
@@ -200,4 +210,6 @@ void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name);
 int ED_fsmenu_entry_get_icon(struct FSMenuEntry *fsentry);
 void ED_fsmenu_entry_set_icon(struct FSMenuEntry *fsentry, const int icon);
 
-#endif /* __ED_FILESELECT_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -34,8 +34,6 @@ using namespace Freestyle;
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
-
 #include "DNA_camera_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
@@ -46,7 +44,7 @@ extern "C" {
 #include "BKE_context.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
 #include "BKE_scene.h"
 #include "BKE_text.h"
@@ -64,6 +62,8 @@ extern "C" {
 #include "renderpipeline.h"
 
 #include "FRS_freestyle.h"
+
+extern "C" {
 
 #define DEFAULT_SPHERE_RADIUS 1.0f
 #define DEFAULT_DKR_EPSILON 0.0f
@@ -100,7 +100,7 @@ static bCallbackFuncStore load_post_callback_funcstore = {
 //   Initialization
 //=======================================================
 
-void FRS_initialize()
+void FRS_init()
 {
   if (freestyle_is_initialized) {
     return;
@@ -341,8 +341,8 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
           const char *id_name = module_conf->script->id.name + 2;
           if (G.debug & G_DEBUG_FREESTYLE) {
             cout << "  " << layer_count + 1 << ": " << id_name;
-            if (module_conf->script->name) {
-              cout << " (" << module_conf->script->name << ")";
+            if (module_conf->script->filepath) {
+              cout << " (" << module_conf->script->filepath << ")";
             }
             cout << endl;
           }
@@ -376,7 +376,7 @@ static void prepare(Render *re, ViewLayer *view_layer, Depsgraph *depsgraph)
           {FREESTYLE_FE_EXTERNAL_CONTOUR, 0},
           {FREESTYLE_FE_EDGE_MARK, 0},
       };
-      int num_edge_types = sizeof(conditions) / sizeof(struct edge_type_condition);
+      int num_edge_types = ARRAY_SIZE(conditions);
       if (G.debug & G_DEBUG_FREESTYLE) {
         cout << "Linesets:" << endl;
       }
@@ -549,7 +549,15 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
     }
     return;
   }
-  dest = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, re->viewname);
+
+  if (view_layer->freestyle_config.flags & FREESTYLE_AS_RENDER_PASS) {
+    RE_create_render_pass(
+        re->result, RE_PASSNAME_FREESTYLE, 4, "RGBA", view_layer->name, re->viewname);
+    dest = RE_RenderLayerGetPass(rl, RE_PASSNAME_FREESTYLE, re->viewname);
+  }
+  else {
+    dest = RE_RenderLayerGetPass(rl, RE_PASSNAME_COMBINED, re->viewname);
+  }
   if (!dest) {
     if (G.debug & G_DEBUG_FREESTYLE) {
       cout << "No destination result image to composite to" << endl;
@@ -629,14 +637,8 @@ void FRS_begin_stroke_rendering(Render *re)
   init_camera(re);
 }
 
-Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
+void FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer)
 {
-  Render *freestyle_render = NULL;
-
-  if (!render) {
-    return controller->RenderStrokes(re, false);
-  }
-
   RenderMonitor monitor(re);
   controller->setRenderMonitor(&monitor);
   controller->setViewMapCache(
@@ -677,6 +679,7 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
       re->i.infostr = NULL;
       g_freestyle.scene = DEG_get_evaluated_scene(depsgraph);
       int strokeCount = controller->DrawStrokes();
+      Render *freestyle_render = NULL;
       if (strokeCount > 0) {
         freestyle_render = controller->RenderStrokes(re, true);
       }
@@ -686,15 +689,12 @@ Render *FRS_do_stroke_rendering(Render *re, ViewLayer *view_layer, int render)
       // composite result
       if (freestyle_render) {
         FRS_composite_result(re, view_layer, freestyle_render);
-        RE_FreeRenderResult(freestyle_render->result);
-        freestyle_render->result = NULL;
+        RE_FreeRender(freestyle_render);
       }
     }
   }
 
   DEG_graph_free(depsgraph);
-
-  return freestyle_render;
 }
 
 void FRS_end_stroke_rendering(Render * /*re*/)

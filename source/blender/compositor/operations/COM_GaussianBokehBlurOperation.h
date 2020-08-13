@@ -16,10 +16,10 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_GAUSSIANBOKEHBLUROPERATION_H__
-#define __COM_GAUSSIANBOKEHBLUROPERATION_H__
-#include "COM_NodeOperation.h"
+#pragma once
+
 #include "COM_BlurBaseOperation.h"
+#include "COM_NodeOperation.h"
 #include "COM_QualityStepHelper.h"
 
 class GaussianBokehBlurOperation : public BlurBaseOperation {
@@ -75,5 +75,3 @@ class GaussianBlurReferenceOperation : public BlurBaseOperation {
                                         ReadBufferOperation *readOperation,
                                         rcti *output);
 };
-
-#endif

@@ -26,11 +26,11 @@
 
 #include "BKE_global.h" /* for G.debug_value */
 
-#include "eevee_private.h"
-#include "GPU_texture.h"
 #include "GPU_extensions.h"
 #include "GPU_platform.h"
 #include "GPU_state.h"
+#include "GPU_texture.h"
+#include "eevee_private.h"
 
 static struct {
   /* Downsample Depth */
@@ -138,7 +138,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   const float *viewport_size = DRW_viewport_size_get();
-  int size_fs[2] = {(int)viewport_size[0], (int)viewport_size[1]};
+  const int size_fs[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
   /* Shaders */
   if (!e_data.downsample_sh) {
@@ -147,13 +147,14 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
 
   if (!stl->effects) {
     stl->effects = MEM_callocN(sizeof(EEVEE_EffectsInfo), "EEVEE_EffectsInfo");
+    stl->effects->taa_render_sample = 1;
   }
 
   effects = stl->effects;
 
   effects->enabled_effects = 0;
   effects->enabled_effects |= (G.debug_value == 9) ? EFFECT_VELOCITY_BUFFER : 0;
-  effects->enabled_effects |= EEVEE_motion_blur_init(sldata, vedata, camera);
+  effects->enabled_effects |= EEVEE_motion_blur_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_bloom_init(sldata, vedata);
   effects->enabled_effects |= EEVEE_depth_of_field_init(sldata, vedata, camera);
   effects->enabled_effects |= EEVEE_temporal_sampling_init(sldata, vedata);
@@ -170,13 +171,8 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
   EEVEE_subsurface_init(sldata, vedata);
 
   /* Force normal buffer creation. */
-  if (!minimal && (stl->g_data->render_passes & SCE_PASS_NORMAL) != 0) {
+  if (!minimal && (stl->g_data->render_passes & EEVEE_RENDER_PASS_NORMAL) != 0) {
     effects->enabled_effects |= EFFECT_NORMAL_BUFFER;
-  }
-
-  /* Alpha checker if background is not drawn in viewport. */
-  if (!DRW_state_is_image_render() && !DRW_state_draw_background()) {
-    effects->enabled_effects |= EFFECT_ALPHA_CHECKER;
   }
 
   /**
@@ -230,10 +226,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata,
    */
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
     effects->velocity_tx = DRW_texture_pool_query_2d(
-        size_fs[0], size_fs[1], GPU_RG16, &draw_engine_eevee_type);
+        size_fs[0], size_fs[1], GPU_RGBA16, &draw_engine_eevee_type);
 
-    /* TODO output objects velocity during the mainpass. */
-    // GPU_framebuffer_texture_attach(fbl->main_fb, effects->velocity_tx, 1, 0);
+    GPU_framebuffer_ensure_config(&fbl->velocity_fb,
+                                  {
+                                      GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+                                      GPU_ATTACHMENT_TEXTURE(effects->velocity_tx),
+                                  });
 
     GPU_framebuffer_ensure_config(
         &fbl->velocity_resolve_fb,
@@ -333,39 +332,19 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
   }
 
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
+    EEVEE_MotionBlurData *mb_data = &effects->motion_blur;
+
     /* This pass compute camera motions to the non moving objects. */
     DRW_PASS_CREATE(psl->velocity_resolve, DRW_STATE_WRITE_COLOR);
     grp = DRW_shgroup_create(EEVEE_shaders_velocity_resolve_sh_get(), psl->velocity_resolve);
     DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
     DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-    DRW_shgroup_uniform_mat4(grp, "currPersinv", effects->velocity_curr_persinv);
-    DRW_shgroup_uniform_mat4(grp, "pastPersmat", effects->velocity_past_persmat);
+    DRW_shgroup_uniform_block(grp, "renderpass_block", sldata->renderpass_ubo.combined);
+
+    DRW_shgroup_uniform_mat4(grp, "prevViewProjMatrix", mb_data->camera[MB_PREV].persmat);
+    DRW_shgroup_uniform_mat4(grp, "currViewProjMatrixInv", mb_data->camera[MB_CURR].persinv);
+    DRW_shgroup_uniform_mat4(grp, "nextViewProjMatrix", mb_data->camera[MB_NEXT].persmat);
     DRW_shgroup_call(grp, quad, NULL);
-  }
-
-  if ((effects->enabled_effects & EFFECT_ALPHA_CHECKER) != 0) {
-    GPUShader *checker_sh = GPU_shader_get_builtin_shader(GPU_SHADER_2D_CHECKER);
-
-    copy_v4_fl4(effects->color_checker_dark, 0.15f, 0.15f, 0.15f, 1.0f);
-    copy_v4_fl4(effects->color_checker_light, 0.2f, 0.2f, 0.2f, 1.0f);
-
-    DRW_PASS_CREATE(psl->alpha_checker,
-                    DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_UNDER_PREMUL);
-    grp = DRW_shgroup_create(checker_sh, psl->alpha_checker);
-    DRW_shgroup_uniform_vec4(grp, "color1", effects->color_checker_dark, 1);
-    DRW_shgroup_uniform_vec4(grp, "color2", effects->color_checker_light, 1);
-    DRW_shgroup_uniform_int_copy(grp, "size", 8);
-    DRW_shgroup_call(grp, quad, NULL);
-
-    float viewmat[4][4], winmat[4][4];
-    unit_m4(viewmat);
-    unit_m4(winmat);
-    /* Winmat must be negative. */
-    swap_v3_v3(winmat[0], winmat[1]);
-
-    /* Using default view bypasses the culling. */
-    const DRWView *default_view = DRW_view_default_get();
-    effects->checker_view = DRW_view_create_sub(default_view, viewmat, winmat);
   }
 }
 
@@ -508,7 +487,7 @@ void EEVEE_downsample_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int le
 }
 
 /**
- * Simple down-sampling algorithm for cubemap. Reconstruct mip chain up to mip level.
+ * Simple down-sampling algorithm for cube-map. Reconstruct mip chain up to mip level.
  */
 void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int level)
 {
@@ -524,41 +503,28 @@ void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, i
   DRW_stats_group_end();
 }
 
-void EEVEE_draw_alpha_checker(EEVEE_Data *vedata)
-{
-  EEVEE_PassList *psl = vedata->psl;
-  EEVEE_StorageList *stl = vedata->stl;
-  EEVEE_EffectsInfo *effects = stl->effects;
-
-  if ((effects->enabled_effects & EFFECT_ALPHA_CHECKER) != 0) {
-    DRW_view_set_active(effects->checker_view);
-
-    DRW_draw_pass(psl->alpha_checker);
-
-    DRW_view_set_active(NULL);
-  }
-}
-
 static void EEVEE_velocity_resolve(EEVEE_Data *vedata)
 {
   EEVEE_PassList *psl = vedata->psl;
   EEVEE_FramebufferList *fbl = vedata->fbl;
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_EffectsInfo *effects = stl->effects;
-  struct DRWView *view = effects->taa_view;
 
   if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
     DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
     e_data.depth_src = dtxl->depth;
-    DRW_view_persmat_get(view, effects->velocity_curr_persinv, true);
 
     GPU_framebuffer_bind(fbl->velocity_resolve_fb);
     DRW_draw_pass(psl->velocity_resolve);
+
+    if (psl->velocity_object) {
+      GPU_framebuffer_bind(fbl->velocity_fb);
+      DRW_draw_pass(psl->velocity_object);
+    }
   }
-  DRW_view_persmat_get(view, effects->velocity_past_persmat, false);
 }
 
-void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_draw_effects(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -573,6 +539,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
   effects->target_buffer = fbl->effect_color_fb; /* next target to render to */
 
   /* Post process stack (order matters) */
+  EEVEE_velocity_resolve(vedata);
   EEVEE_motion_blur_draw(vedata);
   EEVEE_depth_of_field_draw(vedata);
 
@@ -581,10 +548,13 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
    * Velocity resolve use a hack to exclude lookdev
    * spheres from creating shimmering re-projection vectors. */
   EEVEE_lookdev_draw(vedata);
-  EEVEE_velocity_resolve(vedata);
 
   EEVEE_temporal_sampling_draw(vedata);
   EEVEE_bloom_draw(vedata);
+
+  /* Post effect render passes are done here just after the drawing of the effects and just before
+   * the swapping of the buffers. */
+  EEVEE_renderpasses_output_accumulate(sldata, vedata, true);
 
   /* Save the final texture and framebuffer for final transformation or read. */
   effects->final_tx = effects->source_buffer;

@@ -21,10 +21,10 @@
  * \ingroup bke
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "CLG_log.h"
 
@@ -34,10 +34,10 @@
 
 #include "BLI_sys_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_edgehash.h"
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
@@ -111,7 +111,7 @@ static int int64_cmp(const void *v1, const void *v2)
   if (x1 > x2) {
     return 1;
   }
-  else if (x1 < x2) {
+  if (x1 < x2) {
     return -1;
   }
 
@@ -125,28 +125,28 @@ static int search_face_cmp(const void *v1, const void *v2)
   if (sfa->es[0].edval > sfb->es[0].edval) {
     return 1;
   }
-  else if (sfa->es[0].edval < sfb->es[0].edval) {
+  if (sfa->es[0].edval < sfb->es[0].edval) {
     return -1;
   }
 
-  else if (sfa->es[1].edval > sfb->es[1].edval) {
+  if (sfa->es[1].edval > sfb->es[1].edval) {
     return 1;
   }
-  else if (sfa->es[1].edval < sfb->es[1].edval) {
+  if (sfa->es[1].edval < sfb->es[1].edval) {
     return -1;
   }
 
-  else if (sfa->es[2].edval > sfb->es[2].edval) {
+  if (sfa->es[2].edval > sfb->es[2].edval) {
     return 1;
   }
-  else if (sfa->es[2].edval < sfb->es[2].edval) {
+  if (sfa->es[2].edval < sfb->es[2].edval) {
     return -1;
   }
 
-  else if (sfa->es[3].edval > sfb->es[3].edval) {
+  if (sfa->es[3].edval > sfb->es[3].edval) {
     return 1;
   }
-  else if (sfa->es[3].edval < sfb->es[3].edval) {
+  if (sfa->es[3].edval < sfb->es[3].edval) {
     return -1;
   }
 
@@ -214,6 +214,7 @@ static int search_polyloop_cmp(const void *v1, const void *v2)
  *
  * \return false if no changes needed to be made.
  */
+/* NOLINTNEXTLINE: readability-function-size */
 bool BKE_mesh_validate_arrays(Mesh *mesh,
                               MVert *mverts,
                               unsigned int totvert,
@@ -547,6 +548,16 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
     for (i = 0, mp = mpolys; i < totpoly; i++, mp++, sp++) {
       sp->index = i;
 
+      /* Material index, isolated from other tests here. While large indices are clamped,
+       * negative indices aren't supported by drawing, exporters etc.
+       * To check the indices are in range, use #BKE_mesh_validate_material_indices */
+      if (mp->mat_nr < 0) {
+        PRINT_ERR("\tPoly %u has invalid material (%d)", sp->index, mp->mat_nr);
+        if (do_fixes) {
+          mp->mat_nr = 0;
+        }
+      }
+
       if (mp->loopstart < 0 || mp->totloop < 3) {
         /* Invalid loop data. */
         PRINT_ERR("\tPoly %u is invalid (loopstart: %d, totloop: %d)",
@@ -784,24 +795,26 @@ bool BKE_mesh_validate_arrays(Mesh *mesh,
       for (j = 0, dw = dv->dw; j < dv->totweight; j++, dw++) {
         /* note, greater than max defgroups is accounted for in our code, but not < 0 */
         if (!isfinite(dw->weight)) {
-          PRINT_ERR("\tVertex deform %u, group %d has weight: %f", i, dw->def_nr, dw->weight);
+          PRINT_ERR("\tVertex deform %u, group %u has weight: %f", i, dw->def_nr, dw->weight);
           if (do_fixes) {
             dw->weight = 0.0f;
             fix_flag.verts_weight = true;
           }
         }
         else if (dw->weight < 0.0f || dw->weight > 1.0f) {
-          PRINT_ERR("\tVertex deform %u, group %d has weight: %f", i, dw->def_nr, dw->weight);
+          PRINT_ERR("\tVertex deform %u, group %u has weight: %f", i, dw->def_nr, dw->weight);
           if (do_fixes) {
             CLAMP(dw->weight, 0.0f, 1.0f);
             fix_flag.verts_weight = true;
           }
         }
 
-        if (dw->def_nr < 0) {
-          PRINT_ERR("\tVertex deform %u, has invalid group %d", i, dw->def_nr);
+        /* Not technically incorrect since this is unsigned, however,
+         * a value over INT_MAX is almost certainly caused by wrapping an unsigned int. */
+        if (dw->def_nr >= INT_MAX) {
+          PRINT_ERR("\tVertex deform %u, has invalid group %u", i, dw->def_nr);
           if (do_fixes) {
-            defvert_remove_group(dv, dw);
+            BKE_defvert_remove_group(dv, dw);
             fix_flag.verts_weight = true;
 
             if (dv->dw) {
@@ -1070,9 +1083,8 @@ bool BKE_mesh_validate(Mesh *me, const bool do_verbose, const bool cddata_check_
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**
@@ -1131,14 +1143,15 @@ bool BKE_mesh_is_valid(Mesh *me)
  */
 bool BKE_mesh_validate_material_indices(Mesh *me)
 {
+  /* Cast to unsigned to catch negative indices too. */
+  const uint16_t mat_nr_max = max_ii(0, me->totcol - 1);
   MPoly *mp;
-  const int max_idx = max_ii(0, me->totcol - 1);
   const int totpoly = me->totpoly;
   int i;
   bool is_valid = true;
 
   for (mp = me->mpoly, i = 0; i < totpoly; i++, mp++) {
-    if (mp->mat_nr > max_idx) {
+    if ((uint16_t)mp->mat_nr > mat_nr_max) {
       mp->mat_nr = 0;
       is_valid = false;
     }
@@ -1148,9 +1161,8 @@ bool BKE_mesh_validate_material_indices(Mesh *me)
     DEG_id_tag_update(&me->id, ID_RECALC_GEOMETRY);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /** \} */
@@ -1328,13 +1340,13 @@ static int vergedgesort(const void *v1, const void *v2)
   if (x1->v1 > x2->v1) {
     return 1;
   }
-  else if (x1->v1 < x2->v1) {
+  if (x1->v1 < x2->v1) {
     return -1;
   }
-  else if (x1->v2 > x2->v2) {
+  if (x1->v2 > x2->v2) {
     return 1;
   }
-  else if (x1->v2 < x2->v2) {
+  if (x1->v2 < x2->v2) {
     return -1;
   }
 
@@ -1591,8 +1603,15 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
       MLoop *l_prev = (l + (mp->totloop - 1));
       int j;
       for (j = 0; j < mp->totloop; j++, l++) {
-        /* lookup hashed edge index */
-        med_index = POINTER_AS_INT(BLI_edgehash_lookup(eh, l_prev->v, l->v));
+        /* Lookup hashed edge index, if it's valid. */
+        if (l_prev->v != l->v) {
+          med_index = POINTER_AS_INT(BLI_edgehash_lookup(eh, l_prev->v, l->v));
+        }
+        else {
+          /* This is an invalid edge; normally this does not happen in Blender, but it can be part
+           * of an imported mesh with invalid geometry. See T76514. */
+          med_index = 0;
+        }
         l_prev->e = med_index;
         l_prev = l;
       }

@@ -16,12 +16,13 @@
  * Copyright 2015, Blender Foundation.
  */
 
-#ifndef __COM_OUTPUTFILEMULTIVIEWOPERATION_H__
-#define __COM_OUTPUTFILEMULTIVIEWOPERATION_H__
-#include "COM_NodeOperation.h"
+#pragma once
 
-#include "BLI_rect.h"
+#include "COM_NodeOperation.h"
+#include "COM_OutputFileOperation.h"
+
 #include "BLI_path_util.h"
+#include "BLI_rect.h"
 
 #include "DNA_color_types.h"
 
@@ -76,5 +77,3 @@ class OutputStereoOperation : public OutputSingleLayerOperation {
   void *get_handle(const char *filename);
   void deinitExecution();
 };
-
-#endif

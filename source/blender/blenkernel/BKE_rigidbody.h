@@ -22,8 +22,11 @@
  * \brief API for Blender-side Rigid Body stuff
  */
 
-#ifndef __BKE_RIGIDBODY_H__
-#define __BKE_RIGIDBODY_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct RigidBodyOb;
 struct RigidBodyWorld;
@@ -117,16 +120,16 @@ void BKE_rigidbody_remove_constraint(struct Main *bmain,
 
 /* get mass of Rigid Body Object to supply to RigidBody simulators */
 #define RBO_GET_MASS(rbo) \
-  ((rbo && ((rbo->type == RBO_TYPE_PASSIVE) || (rbo->flag & RBO_FLAG_KINEMATIC) || \
-            (rbo->flag & RBO_FLAG_DISABLED))) ? \
+  (((rbo) && (((rbo)->type == RBO_TYPE_PASSIVE) || ((rbo)->flag & RBO_FLAG_KINEMATIC) || \
+              ((rbo)->flag & RBO_FLAG_DISABLED))) ? \
        (0.0f) : \
-       (rbo->mass))
+       ((rbo)->mass))
 /* Get collision margin for Rigid Body Object, triangle mesh and cone shapes cannot embed margin,
  * convex hull always uses custom margin. */
 #define RBO_GET_MARGIN(rbo) \
-  ((rbo->flag & RBO_FLAG_USE_MARGIN || rbo->shape == RB_SHAPE_CONVEXH || \
-    rbo->shape == RB_SHAPE_TRIMESH || rbo->shape == RB_SHAPE_CONE) ? \
-       (rbo->margin) : \
+  (((rbo)->flag & RBO_FLAG_USE_MARGIN || (rbo)->shape == RB_SHAPE_CONVEXH || \
+    (rbo)->shape == RB_SHAPE_TRIMESH || (rbo)->shape == RB_SHAPE_CONE) ? \
+       ((rbo)->margin) : \
        (0.04f))
 
 /* -------------- */
@@ -155,4 +158,6 @@ void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
                                           struct Scene *scene,
                                           struct Object *ob);
 
-#endif /* __BKE_RIGIDBODY_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -28,14 +28,17 @@
 
 #include <stdlib.h>
 
-#include "BLI_utildefines.h"
-#include "BLI_path_util.h"
 #include "BLI_fileops.h"
+#include "BLI_path_util.h"
+#include "BLI_utildefines.h"
+#ifdef _WIN32
+#  include "BLI_winstuff.h"
+#endif
 
-#include "imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_filetype.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "imbuf.h"
 
 #include "IMB_anim.h"
 
@@ -45,8 +48,8 @@
 #  include "BKE_global.h" /* G.debug */
 
 #  include <libavcodec/avcodec.h>
-#  include <libavformat/avformat.h>
 #  include <libavdevice/avdevice.h>
+#  include <libavformat/avformat.h>
 #  include <libavutil/log.h>
 
 #  include "ffmpeg_compat.h"
@@ -336,42 +339,42 @@ int imb_get_anim_type(const char *name)
 #  ifdef WITH_FFMPEG
   /* stat test below fails on large files > 4GB */
   if (isffmpeg(name)) {
-    return (ANIM_FFMPEG);
+    return ANIM_FFMPEG;
   }
 #  endif
   if (BLI_stat(name, &st) == -1) {
-    return (0);
+    return 0;
   }
   if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return (0);
+    return 0;
   }
 
   if (isavi(name)) {
-    return (ANIM_AVI);
+    return ANIM_AVI;
   }
 
   if (ismovie(name)) {
-    return (ANIM_MOVIE);
+    return ANIM_MOVIE;
   }
 #else
   if (BLI_stat(name, &st) == -1) {
-    return (0);
+    return 0;
   }
   if (((st.st_mode) & S_IFMT) != S_IFREG) {
-    return (0);
+    return 0;
   }
 
   if (ismovie(name)) {
-    return (ANIM_MOVIE);
+    return ANIM_MOVIE;
   }
 #  ifdef WITH_FFMPEG
   if (isffmpeg(name)) {
-    return (ANIM_FFMPEG);
+    return ANIM_FFMPEG;
   }
 #  endif
 
   if (isavi(name)) {
-    return (ANIM_AVI);
+    return ANIM_AVI;
   }
 #endif
   type = IMB_ispic(name);

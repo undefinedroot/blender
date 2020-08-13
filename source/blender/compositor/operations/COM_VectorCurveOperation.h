@@ -16,10 +16,10 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_VECTORCURVEOPERATION_H__
-#define __COM_VECTORCURVEOPERATION_H__
-#include "COM_NodeOperation.h"
+#pragma once
+
 #include "COM_CurveBaseOperation.h"
+#include "COM_NodeOperation.h"
 
 class VectorCurveOperation : public CurveBaseOperation {
  private:
@@ -46,4 +46,3 @@ class VectorCurveOperation : public CurveBaseOperation {
    */
   void deinitExecution();
 };
-#endif

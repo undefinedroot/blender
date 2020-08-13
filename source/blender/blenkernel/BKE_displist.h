@@ -17,15 +17,18 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_DISPLIST_H__
-#define __BKE_DISPLIST_H__
+#pragma once
 
 /** \file
  * \ingroup bke
  * \brief display list (or rather multi purpose list) stuff.
  */
-#include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
+#include "DNA_customdata_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* dl->type */
 #define DL_POLY 0
@@ -112,4 +115,6 @@ float BKE_displist_calc_taper(
 
 void BKE_displist_minmax(struct ListBase *dispbase, float min[3], float max[3]);
 
+#ifdef __cplusplus
+}
 #endif

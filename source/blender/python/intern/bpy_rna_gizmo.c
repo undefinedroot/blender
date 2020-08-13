@@ -25,8 +25,8 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_alloca.h"
+#include "BLI_utildefines.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -38,8 +38,8 @@
 #include "../generic/python_utildefines.h"
 
 #include "RNA_access.h"
-#include "RNA_types.h"
 #include "RNA_enum_types.h"
+#include "RNA_types.h"
 
 #include "bpy_rna.h"
 
@@ -367,10 +367,10 @@ static PyObject *bpy_gizmo_target_get_value(PyObject *UNUSED(self), PyObject *ar
         WM_gizmo_target_property_float_get_array(gz, gz_prop, value);
         return PyC_Tuple_PackArray_F32(value, array_len);
       }
-      else {
-        float value = WM_gizmo_target_property_float_get(gz, gz_prop);
-        return PyFloat_FromDouble(value);
-      }
+
+      float value = WM_gizmo_target_property_float_get(gz, gz_prop);
+      return PyFloat_FromDouble(value);
+
       break;
     }
     default: {

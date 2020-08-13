@@ -13,12 +13,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BKE_APPDIR_H__
-#define __BKE_APPDIR_H__
+#pragma once
 
 /** \file
  * \ingroup bli
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ListBase;
 
 /* note on naming: typical _get() suffix is omitted here,
@@ -93,4 +97,6 @@ enum {
 #define BLENDER_HISTORY_FILE "recent-files.txt"
 #define BLENDER_PLATFORM_SUPPORT_FILE "platform_support.txt"
 
-#endif /* __BKE_APPDIR_H__ */
+#ifdef __cplusplus
+}
+#endif

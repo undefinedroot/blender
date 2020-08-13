@@ -24,8 +24,8 @@
 #include "BKE_camera.h"
 #include "BKE_studiolight.h"
 
-#include "BLI_rect.h"
 #include "BLI_rand.h"
+#include "BLI_rect.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_world_types.h"
@@ -34,10 +34,12 @@
 
 #include "ED_screen.h"
 
+#include "GPU_material.h"
+
 #include "UI_resources.h"
 
-#include "eevee_private.h"
 #include "eevee_lightcache.h"
+#include "eevee_private.h"
 
 #include "draw_common.h"
 
@@ -56,26 +58,76 @@ static void eevee_lookdev_lightcache_delete(EEVEE_Data *vedata)
   g_data->studiolight_rot_z = 0.0f;
 }
 
+static void eevee_lookdev_hdri_preview_init(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata)
+{
+  EEVEE_PassList *psl = vedata->psl;
+  const DRWContextState *draw_ctx = DRW_context_state_get();
+  Scene *scene = draw_ctx->scene;
+  DRWShadingGroup *grp;
+
+  struct GPUBatch *sphere = DRW_cache_sphere_get();
+  int mat_options = VAR_MAT_MESH | VAR_MAT_LOOKDEV;
+
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS |
+                   DRW_STATE_CULL_BACK;
+
+  {
+    Material *ma = EEVEE_material_default_diffuse_get();
+    GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
+    struct GPUShader *sh = GPU_material_get_shader(gpumat);
+
+    DRW_PASS_CREATE(psl->lookdev_diffuse_pass, state);
+    grp = DRW_shgroup_create(sh, psl->lookdev_diffuse_pass);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+    DRW_shgroup_add_material_resources(grp, gpumat);
+    DRW_shgroup_call(grp, sphere, NULL);
+  }
+  {
+    Material *ma = EEVEE_material_default_glossy_get();
+    GPUMaterial *gpumat = EEVEE_material_get(vedata, scene, ma, NULL, mat_options);
+    struct GPUShader *sh = GPU_material_get_shader(gpumat);
+
+    DRW_PASS_CREATE(psl->lookdev_glossy_pass, state);
+    grp = DRW_shgroup_create(sh, psl->lookdev_glossy_pass);
+    EEVEE_material_bind_resources(grp, gpumat, sldata, vedata, NULL, NULL, false, false);
+    DRW_shgroup_add_material_resources(grp, gpumat);
+    DRW_shgroup_call(grp, sphere, NULL);
+  }
+}
+
 void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
-                              DRWShadingGroup **grp,
+                              EEVEE_ViewLayerData *sldata,
                               DRWPass *pass,
-                              float background_alpha,
-                              World *UNUSED(world),
-                              EEVEE_LightProbesInfo *pinfo)
+                              EEVEE_LightProbesInfo *pinfo,
+                              DRWShadingGroup **r_shgrp)
 {
   EEVEE_StorageList *stl = vedata->stl;
   EEVEE_TextureList *txl = vedata->txl;
   EEVEE_EffectsInfo *effects = stl->effects;
   EEVEE_PrivateData *g_data = stl->g_data;
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  View3D *v3d = draw_ctx->v3d;
-  Scene *scene = draw_ctx->scene;
+  /* The view will be NULL when rendering previews. */
+  const View3D *v3d = draw_ctx->v3d;
+  const Scene *scene = draw_ctx->scene;
+
+  const bool probe_render = pinfo != NULL;
 
   effects->lookdev_view = NULL;
 
-  if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
+  if (eevee_hdri_preview_overlay_enabled(v3d)) {
     /* Viewport / Spheres size. */
-    const rcti *rect = ED_region_visible_rect(draw_ctx->ar);
+    const rcti *rect;
+    rcti fallback_rect;
+    if (DRW_state_is_opengl_render()) {
+      const float *vp_size = DRW_viewport_size_get();
+      fallback_rect.xmax = vp_size[0];
+      fallback_rect.ymax = vp_size[1];
+      fallback_rect.xmin = fallback_rect.ymin = 0;
+      rect = &fallback_rect;
+    }
+    else {
+      rect = ED_region_visible_rect(draw_ctx->region);
+    }
 
     /* Make the viewport width scale the lookdev spheres a bit.
      * Scale between 1000px and 2000px. */
@@ -92,99 +144,96 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata,
       effects->anchor[1] = rect->ymin;
       EEVEE_temporal_sampling_reset(vedata);
     }
+
+    eevee_lookdev_hdri_preview_init(vedata, sldata);
   }
 
   if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
-    StudioLight *sl = BKE_studiolight_find(v3d->shading.lookdev_light,
+    const View3DShading *shading = &v3d->shading;
+    StudioLight *sl = BKE_studiolight_find(shading->lookdev_light,
                                            STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE);
-    if (sl && (sl->flag & STUDIOLIGHT_TYPE_WORLD)) {
-      GPUShader *shader = EEVEE_shaders_default_studiolight_sh_get();
-      struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
-      GPUTexture *tex = NULL;
+    if (sl == NULL || (sl->flag & STUDIOLIGHT_TYPE_WORLD) == 0) {
+      return;
+    }
 
-      /* If one of the component is missing we start from scratch. */
-      if ((stl->lookdev_grid_data == NULL) || (stl->lookdev_cube_data == NULL) ||
-          (txl->lookdev_grid_tx == NULL) || (txl->lookdev_cube_tx == NULL)) {
-        eevee_lookdev_lightcache_delete(vedata);
-      }
+    GPUShader *shader = probe_render ? EEVEE_shaders_studiolight_probe_sh_get() :
+                                       EEVEE_shaders_studiolight_background_sh_get();
 
-      if (stl->lookdev_lightcache == NULL) {
-        const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+    const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+    int cube_res = scene_eval->eevee.gi_cubemap_resolution;
+
+    /* If one of the component is missing we start from scratch. */
+    if ((stl->lookdev_grid_data == NULL) || (stl->lookdev_cube_data == NULL) ||
+        (txl->lookdev_grid_tx == NULL) || (txl->lookdev_cube_tx == NULL) ||
+        (g_data->light_cache && g_data->light_cache->ref_res != cube_res)) {
+      eevee_lookdev_lightcache_delete(vedata);
+    }
+
+    if (stl->lookdev_lightcache == NULL) {
 #if defined(IRRADIANCE_SH_L2)
-        int grid_res = 4;
-#elif defined(IRRADIANCE_CUBEMAP)
-        int grid_res = 8;
+      int grid_res = 4;
 #elif defined(IRRADIANCE_HL2)
-        int grid_res = 4;
+      int grid_res = 4;
 #endif
-        int cube_res = OCTAHEDRAL_SIZE_FROM_CUBESIZE(scene_eval->eevee.gi_cubemap_resolution);
-        int vis_res = scene_eval->eevee.gi_visibility_resolution;
 
-        stl->lookdev_lightcache = EEVEE_lightcache_create(
-            1, 1, cube_res, vis_res, (int[3]){grid_res, grid_res, 1});
+      stl->lookdev_lightcache = EEVEE_lightcache_create(
+          1, 1, cube_res, 8, (int[3]){grid_res, grid_res, 1});
 
-        /* XXX: Fix memleak. TODO find out why. */
-        MEM_SAFE_FREE(stl->lookdev_cube_mips);
+      /* XXX: Fix memleak. TODO find out why. */
+      MEM_SAFE_FREE(stl->lookdev_cube_mips);
 
-        /* We do this to use a special light cache for lookdev.
-         * This light-cache needs to be per viewport. But we need to
-         * have correct freeing when the viewport is closed. So we
-         * need to reference all textures to the txl and the memblocks
-         * to the stl. */
-        stl->lookdev_grid_data = stl->lookdev_lightcache->grid_data;
-        stl->lookdev_cube_data = stl->lookdev_lightcache->cube_data;
-        stl->lookdev_cube_mips = stl->lookdev_lightcache->cube_mips;
-        txl->lookdev_grid_tx = stl->lookdev_lightcache->grid_tx.tex;
-        txl->lookdev_cube_tx = stl->lookdev_lightcache->cube_tx.tex;
-      }
+      /* We do this to use a special light cache for lookdev.
+       * This light-cache needs to be per viewport. But we need to
+       * have correct freeing when the viewport is closed. So we
+       * need to reference all textures to the txl and the memblocks
+       * to the stl. */
+      stl->lookdev_grid_data = stl->lookdev_lightcache->grid_data;
+      stl->lookdev_cube_data = stl->lookdev_lightcache->cube_data;
+      stl->lookdev_cube_mips = stl->lookdev_lightcache->cube_mips;
+      txl->lookdev_grid_tx = stl->lookdev_lightcache->grid_tx.tex;
+      txl->lookdev_cube_tx = stl->lookdev_lightcache->cube_tx.tex;
+    }
 
-      stl->g_data->light_cache = stl->lookdev_lightcache;
+    g_data->light_cache = stl->lookdev_lightcache;
 
-      static float background_color[4];
-      UI_GetThemeColor4fv(TH_BACK, background_color);
-      /* XXX: Really quick conversion to avoid washed out background.
-       * Needs to be addressed properly (color managed using ocio). */
-      srgb_to_linearrgb_v4(background_color, background_color);
+    DRWShadingGroup *grp = DRW_shgroup_create(shader, pass);
+    axis_angle_to_mat3_single(g_data->studiolight_matrix, 'Z', shading->studiolight_rot_z);
+    DRW_shgroup_uniform_mat3(grp, "StudioLightMatrix", g_data->studiolight_matrix);
 
-      *grp = DRW_shgroup_create(shader, pass);
-      axis_angle_to_mat3_single(
-          stl->g_data->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
-      DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->g_data->studiolight_matrix);
-      DRW_shgroup_uniform_float_copy(*grp, "backgroundAlpha", background_alpha);
-      DRW_shgroup_uniform_float(
-          *grp, "studioLightIntensity", &v3d->shading.studiolight_intensity, 1);
+    if (probe_render) {
+      /* Avoid artifact with equirectangular mapping. */
+      eGPUSamplerState state = (GPU_SAMPLER_FILTER | GPU_SAMPLER_REPEAT_S);
+      DRW_shgroup_uniform_float_copy(grp, "studioLightIntensity", shading->studiolight_intensity);
+      BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
+      DRW_shgroup_uniform_texture_ex(grp, "studioLight", sl->equirect_radiance_gputexture, state);
+      /* Do not fadeout when doing probe rendering, only when drawing the background */
+      DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", 1.0f);
+    }
+    else {
+      float background_alpha = g_data->background_alpha * shading->studiolight_background;
+      float studiolight_blur = powf(shading->studiolight_blur, 2.5f);
+      DRW_shgroup_uniform_float_copy(grp, "backgroundAlpha", background_alpha);
+      DRW_shgroup_uniform_float_copy(grp, "studioLightBlur", studiolight_blur);
+      DRW_shgroup_uniform_texture(grp, "probeCubes", txl->lookdev_cube_tx);
+    }
 
-      DRW_shgroup_uniform_vec3(*grp, "color", background_color, 1);
-      DRW_shgroup_call(*grp, geom, NULL);
-      if (!pinfo) {
-        /* Do not fadeout when doing probe rendering, only when drawing the background */
-        DRW_shgroup_uniform_float(
-            *grp, "studioLightBackground", &v3d->shading.studiolight_background, 1);
-        BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_IRRADIANCE_GPUTEXTURE);
-        tex = sl->equirect_irradiance_gputexture;
-      }
-      else {
-        DRW_shgroup_uniform_float_copy(*grp, "studioLightBackground", 1.0f);
-        BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECT_RADIANCE_GPUTEXTURE);
-        tex = sl->equirect_radiance_gputexture;
-      }
-      DRW_shgroup_uniform_texture(*grp, "image", tex);
+    /* Common UBOs are setup latter. */
+    *r_shgrp = grp;
 
-      /* Do we need to recalc the lightprobes? */
-      if (g_data->studiolight_index != sl->index ||
-          g_data->studiolight_rot_z != v3d->shading.studiolight_rot_z ||
-          g_data->studiolight_intensity != v3d->shading.studiolight_intensity ||
-          g_data->studiolight_cubemap_res != scene->eevee.gi_cubemap_resolution ||
-          g_data->studiolight_glossy_clamp != scene->eevee.gi_glossy_clamp ||
-          g_data->studiolight_filter_quality != scene->eevee.gi_filter_quality) {
-        stl->lookdev_lightcache->flag |= LIGHTCACHE_UPDATE_WORLD;
-        g_data->studiolight_index = sl->index;
-        g_data->studiolight_rot_z = v3d->shading.studiolight_rot_z;
-        g_data->studiolight_intensity = v3d->shading.studiolight_intensity;
-        g_data->studiolight_cubemap_res = scene->eevee.gi_cubemap_resolution;
-        g_data->studiolight_glossy_clamp = scene->eevee.gi_glossy_clamp;
-        g_data->studiolight_filter_quality = scene->eevee.gi_filter_quality;
-      }
+    /* Do we need to recalc the lightprobes? */
+    if (g_data->studiolight_index != sl->index ||
+        g_data->studiolight_rot_z != shading->studiolight_rot_z ||
+        g_data->studiolight_intensity != shading->studiolight_intensity ||
+        g_data->studiolight_cubemap_res != scene->eevee.gi_cubemap_resolution ||
+        g_data->studiolight_glossy_clamp != scene->eevee.gi_glossy_clamp ||
+        g_data->studiolight_filter_quality != scene->eevee.gi_filter_quality) {
+      stl->lookdev_lightcache->flag |= LIGHTCACHE_UPDATE_WORLD;
+      g_data->studiolight_index = sl->index;
+      g_data->studiolight_rot_z = shading->studiolight_rot_z;
+      g_data->studiolight_intensity = shading->studiolight_intensity;
+      g_data->studiolight_cubemap_res = scene->eevee.gi_cubemap_resolution;
+      g_data->studiolight_glossy_clamp = scene->eevee.gi_glossy_clamp;
+      g_data->studiolight_filter_quality = scene->eevee.gi_filter_quality;
     }
   }
 }
@@ -196,7 +245,7 @@ static void eevee_lookdev_apply_taa(const EEVEE_EffectsInfo *effects,
   if (DRW_state_is_image_render() || ((effects->enabled_effects & EFFECT_TAA) != 0)) {
     double ht_point[2];
     double ht_offset[2] = {0.0, 0.0};
-    uint ht_primes[2] = {2, 3};
+    const uint ht_primes[2] = {2, 3};
     float ofs[2];
 
     BLI_halton_2d(ht_primes, ht_offset, effects->taa_current_sample, ht_point);
@@ -216,7 +265,7 @@ void EEVEE_lookdev_draw(EEVEE_Data *vedata)
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
 
-  if (psl->lookdev_diffuse_pass && LOOK_DEV_OVERLAY_ENABLED(draw_ctx->v3d)) {
+  if (psl->lookdev_diffuse_pass && eevee_hdri_preview_overlay_enabled(draw_ctx->v3d)) {
     /* Config renderer. */
     EEVEE_CommonUniformBuffer *common = &sldata->common_data;
     common->la_num_light = 0;

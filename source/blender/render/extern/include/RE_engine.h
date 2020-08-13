@@ -21,13 +21,13 @@
  * \ingroup render
  */
 
-#ifndef __RE_ENGINE_H__
-#define __RE_ENGINE_H__
+#pragma once
 
 #include "DNA_listBase.h"
+#include "DNA_node_types.h"
 #include "DNA_scene_types.h"
-#include "RNA_types.h"
 #include "RE_bake.h"
+#include "RNA_types.h"
 
 #include "BLI_threads.h"
 
@@ -47,6 +47,10 @@ struct ViewLayer;
 struct bNode;
 struct bNodeTree;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* External Engine */
 
 /* RenderEngineType.flag */
@@ -58,6 +62,8 @@ struct bNodeTree;
 #define RE_USE_SAVE_BUFFERS 32
 #define RE_USE_SHADING_NODES_CUSTOM 64
 #define RE_USE_SPHERICAL_STEREO 128
+#define RE_USE_STEREO_VIEWPORT 256
+#define RE_USE_GPU_CONTEXT 512
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION 1
@@ -66,7 +72,6 @@ struct bNodeTree;
 #define RE_ENGINE_DO_UPDATE 8
 #define RE_ENGINE_RENDERING 16
 #define RE_ENGINE_HIGHLIGHT_TILES 32
-#define RE_ENGINE_USED_FOR_VIEWPORT 64
 
 extern ListBase R_engines;
 
@@ -85,11 +90,8 @@ typedef struct RenderEngineType {
                struct Object *object,
                const int pass_type,
                const int pass_filter,
-               const int object_id,
-               const struct BakePixel *pixel_array,
-               const int num_pixels,
-               const int depth,
-               void *result);
+               const int width,
+               const int height);
 
   void (*view_update)(struct RenderEngine *engine,
                       const struct bContext *context,
@@ -108,7 +110,7 @@ typedef struct RenderEngineType {
   struct DrawEngineType *draw_engine;
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } RenderEngineType;
 
 typedef void (*update_render_passes_cb_t)(void *userdata,
@@ -117,7 +119,7 @@ typedef void (*update_render_passes_cb_t)(void *userdata,
                                           const char *name,
                                           int channels,
                                           const char *chanid,
-                                          int type);
+                                          eNodeSocketDatatype type);
 
 typedef struct RenderEngine {
   RenderEngineType *type;
@@ -138,6 +140,13 @@ typedef struct RenderEngine {
 
   struct ReportList *reports;
 
+  struct {
+    const struct BakePixel *pixels;
+    float *result;
+    int width, height, depth;
+    int object_id;
+  } bake;
+
   /* Depsgraph */
   struct Depsgraph *depsgraph;
 
@@ -153,7 +162,6 @@ typedef struct RenderEngine {
 } RenderEngine;
 
 RenderEngine *RE_engine_create(RenderEngineType *type);
-RenderEngine *RE_engine_create_ex(RenderEngineType *type, bool use_for_viewport);
 void RE_engine_free(RenderEngine *engine);
 
 void RE_layer_load_from_file(
@@ -197,7 +205,7 @@ void RE_engine_set_error_message(RenderEngine *engine, const char *msg);
 
 int RE_engine_render(struct Render *re, int do_all);
 
-bool RE_engine_is_external(struct Render *re);
+bool RE_engine_is_external(const struct Render *re);
 
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe);
 
@@ -212,7 +220,7 @@ void RE_engine_register_pass(struct RenderEngine *engine,
                              const char *name,
                              int channels,
                              const char *chanid,
-                             int type);
+                             eNodeSocketDatatype type);
 
 /* Engine Types */
 
@@ -232,4 +240,6 @@ void RE_bake_engine_set_engine_parameters(struct Render *re,
 
 void RE_engine_free_blender_memory(struct RenderEngine *engine);
 
-#endif /* __RE_ENGINE_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -21,11 +21,10 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_TEXTURE_TYPES_H__
-#define __DNA_TEXTURE_TYPES_H__
+#pragma once
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
+#include "DNA_defs.h"
 #include "DNA_image_types.h" /* ImageUser */
 
 #ifdef __cplusplus
@@ -528,6 +527,4 @@ enum {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

@@ -18,8 +18,11 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_CALLBACKS_H__
-#define __BKE_CALLBACKS_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Depsgraph;
 struct ID;
@@ -81,4 +84,6 @@ void BKE_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt);
 void BKE_callback_global_init(void);
 void BKE_callback_global_finalize(void);
 
-#endif /* __BKE_CALLBACKS_H__ */
+#ifdef __cplusplus
+}
+#endif

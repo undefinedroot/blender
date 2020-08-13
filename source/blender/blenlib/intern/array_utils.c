@@ -22,16 +22,16 @@
  * and only included for the cases where the performance is acceptable.
  * Use with care.
  */
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.h"
 
+#include "BLI_alloca.h"
 #include "BLI_sys_types.h"
 #include "BLI_utildefines.h"
-#include "BLI_alloca.h"
 
 #include "BLI_strict_flags.h"
 
@@ -208,7 +208,7 @@ bool _bli_array_iter_span(const void *arr,
   if (arr_len == 0) {
     return false;
   }
-  else if (use_wrap && (span_step[0] != arr_len) && (span_step[0] > span_step[1])) {
+  if (use_wrap && (span_step[0] != arr_len) && (span_step[0] > span_step[1])) {
     return false;
   }
 

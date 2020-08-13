@@ -22,24 +22,24 @@
  */
 
 /* This little block needed for linking to Blender... */
-#include <stdio.h>
 #include <setjmp.h>
+#include <stdio.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_fileops.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_idprop.h"
 
-#include "imbuf.h"
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
-#include "IMB_metadata.h"
 #include "IMB_filetype.h"
-#include "jpeglib.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+#include "IMB_metadata.h"
+#include "imbuf.h"
 #include "jerror.h"
+#include "jpeglib.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
@@ -417,7 +417,7 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
     }
   }
 
-  return (ibuf);
+  return ibuf;
 }
 
 ImBuf *imb_load_jpeg(const unsigned char *buffer,
@@ -452,7 +452,7 @@ ImBuf *imb_load_jpeg(const unsigned char *buffer,
 
   ibuf = ibJpegImageFromCinfo(cinfo, flags);
 
-  return (ibuf);
+  return ibuf;
 }
 
 static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
@@ -479,7 +479,7 @@ static void write_jpeg(struct jpeg_compress_struct *cinfo, struct ImBuf *ibuf)
     for (prop = ibuf->metadata->data.group.first; prop; prop = prop->next) {
       if (prop->type == IDP_STRING) {
         int text_len;
-        if (!strcmp(prop->name, "None")) {
+        if (STREQ(prop->name, "None")) {
           jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *)IDP_String(prop), prop->len + 1);
         }
 
@@ -605,7 +605,7 @@ static int init_jpeg(FILE *outfile, struct jpeg_compress_struct *cinfo, struct I
   cinfo->dct_method = JDCT_FLOAT;
   jpeg_set_quality(cinfo, quality, true);
 
-  return (0);
+  return 0;
 }
 
 static int save_stdjpeg(const char *name, struct ImBuf *ibuf)

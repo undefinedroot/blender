@@ -30,16 +30,16 @@
 #include "IMB_imbuf_types.h"
 
 #include "IMB_allocimbuf.h"
+#include "IMB_colormanagement_intern.h"
 #include "IMB_filetype.h"
 #include "IMB_metadata.h"
-#include "IMB_colormanagement_intern.h"
 
 #include "imbuf.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_threads.h"
+#include "BLI_utildefines.h"
 
 static SpinLock refcounter_spin;
 
@@ -380,7 +380,7 @@ void *imb_alloc_pixels(
   }
 
   size_t size = (size_t)x * (size_t)y * (size_t)channels * typesize;
-  return MEM_mapallocN(size, name);
+  return MEM_callocN(size, name);
 }
 
 bool imb_addrectfloatImBuf(ImBuf *ibuf)
@@ -423,9 +423,8 @@ bool imb_addrectImBuf(ImBuf *ibuf)
     if (ibuf->planes > 32) {
       return (addzbufImBuf(ibuf));
     }
-    else {
-      return true;
-    }
+
+    return true;
   }
 
   return false;
@@ -489,7 +488,7 @@ ImBuf *IMB_allocImBuf(unsigned int x, unsigned int y, uchar planes, unsigned int
     }
   }
 
-  return (ibuf);
+  return ibuf;
 }
 
 bool IMB_initImBuf(
@@ -624,7 +623,7 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 
   *ibuf2 = tbuf;
 
-  return (ibuf2);
+  return ibuf2;
 }
 
 size_t IMB_get_size_in_memory(ImBuf *ibuf)

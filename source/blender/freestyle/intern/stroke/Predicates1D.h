@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_PREDICATES_1D_H__
-#define __FREESTYLE_PREDICATES_1D_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -28,8 +27,8 @@
 
 #include "../system/TimeStamp.h"
 
-#include "../view_map/Interface1D.h"
 #include "../view_map/Functions1D.h"
+#include "../view_map/Interface1D.h"
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
@@ -580,5 +579,3 @@ class ViewMapGradientNormBP1D : public BinaryPredicate1D {
 }  // end of namespace Predicates1D
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_PREDICATES_1D_H__

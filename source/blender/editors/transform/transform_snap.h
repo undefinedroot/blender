@@ -18,8 +18,7 @@
  * \ingroup editors
  */
 
-#ifndef __TRANSFORM_SNAP_H__
-#define __TRANSFORM_SNAP_H__
+#pragma once
 
 #define SNAP_MIN_DISTANCE 30
 
@@ -35,14 +34,6 @@ bool peelObjectsTransform(struct TransInfo *t,
                           float r_loc[3],
                           float r_no[3],
                           float *r_thickness);
-bool peelObjectsSnapContext(struct SnapObjectContext *sctx,
-                            const float mval[2],
-                            const struct SnapObjectParams *params,
-                            const bool use_peel_object,
-                            /* return args */
-                            float r_loc[3],
-                            float r_no[3],
-                            float *r_thickness);
 
 short snapObjectsTransform(struct TransInfo *t,
                            const float mval[2],
@@ -95,4 +86,4 @@ void addSnapPoint(TransInfo *t);
 eRedrawFlag updateSelectedSnapPoint(TransInfo *t);
 void removeSnapPoint(TransInfo *t);
 
-#endif /* __TRANSFORM_SNAP_H__ */
+float transform_snap_distance_len_squared_fn(TransInfo *t, const float p1[3], const float p2[3]);

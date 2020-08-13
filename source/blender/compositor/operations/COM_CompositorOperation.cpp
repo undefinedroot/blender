@@ -17,18 +17,19 @@
  */
 
 #include "COM_CompositorOperation.h"
-#include "MEM_guardedalloc.h"
-#include "BLI_listbase.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
+#include "BLI_listbase.h"
+#include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BLI_threads.h"
+
 #include "RE_pipeline.h"
-#include "RE_shader_ext.h"
 #include "RE_render_ext.h"
+#include "RE_shader_ext.h"
+
 #include "render_types.h"
-}
+
 #include "PIL_time.h"
 
 CompositorOperation::CompositorOperation() : NodeOperation()
@@ -64,11 +65,11 @@ void CompositorOperation::initExecution()
   this->m_depthInput = getInputSocketReader(2);
   if (this->getWidth() * this->getHeight() != 0) {
     this->m_outputBuffer = (float *)MEM_callocN(
-        this->getWidth() * this->getHeight() * 4 * sizeof(float), "CompositorOperation");
+        sizeof(float[4]) * this->getWidth() * this->getHeight(), "CompositorOperation");
   }
   if (this->m_depthInput != NULL) {
     this->m_depthBuffer = (float *)MEM_callocN(
-        this->getWidth() * this->getHeight() * sizeof(float), "CompositorOperation");
+        sizeof(float) * this->getWidth() * this->getHeight(), "CompositorOperation");
   }
 }
 
@@ -111,7 +112,7 @@ void CompositorOperation::deinitExecution()
 
     BLI_thread_lock(LOCK_DRAW_IMAGE);
     BKE_image_signal(G.main,
-                     BKE_image_verify_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result"),
+                     BKE_image_ensure_viewer(G.main, IMA_TYPE_R_RESULT, "Render Result"),
                      NULL,
                      IMA_SIGNAL_FREE);
     BLI_thread_unlock(LOCK_DRAW_IMAGE);

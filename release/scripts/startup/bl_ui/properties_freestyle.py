@@ -115,6 +115,15 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
     bl_label = "Freestyle"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
+    def draw_header(self, context):
+        view_layer = context.view_layer
+        rd = context.scene.render
+
+        layout = self.layout
+
+        layout.active = rd.use_freestyle
+        layout.prop(view_layer, "use_freestyle", text="")
+
     def draw(self, context):
         layout = self.layout
 
@@ -126,6 +135,7 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
         row = layout.row()
         layout.prop(freestyle, "mode", text="Control Mode")
         layout.prop(freestyle, "use_view_map_cache", text="View Map Cache")
+        layout.prop(freestyle, "as_render_pass", text="As Render Pass")
         layout.label(text="Edge Detection Options:")
 
         split = layout.split()

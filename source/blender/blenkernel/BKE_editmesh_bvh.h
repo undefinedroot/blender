@@ -21,8 +21,11 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_EDITMESH_BVH_H__
-#define __BKE_EDITMESH_BVH_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BMBVHTree;
 struct BMEditMesh;
@@ -97,4 +100,6 @@ enum {
   BMBVH_RESPECT_HIDDEN = (1 << 2),
 };
 
-#endif /* __BKE_EDITMESH_BVH_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -28,6 +28,7 @@ void PyC_ObSpit(const char *name, PyObject *var);
 void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var);
 void PyC_LineSpit(void);
 void PyC_StackSpit(void);
+void PyC_StackPrint(/* FILE */ void *fp);
 PyObject *PyC_ExceptionBuffer(void);
 PyObject *PyC_ExceptionBuffer_Simple(void);
 PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
@@ -38,8 +39,8 @@ PyObject *PyC_Err_SetString_Prefix(PyObject *exception_type_prefix, const char *
 
 void PyC_Err_PrintWithFunc(PyObject *py_func);
 
-void PyC_FileAndNum(const char **filename, int *lineno);
-void PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
+void PyC_FileAndNum(const char **r_filename, int *r_lineno);
+void PyC_FileAndNum_Safe(const char **r_filename, int *r_lineno); /* checks python is running */
 int PyC_AsArray_FAST(void *array,
                      PyObject *value_fast,
                      const Py_ssize_t length,

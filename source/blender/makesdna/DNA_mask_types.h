@@ -24,13 +24,12 @@
  * for image masking in the compositor and sequencer.
  */
 
-#ifndef __DNA_MASK_TYPES_H__
-#define __DNA_MASK_TYPES_H__
+#pragma once
 
-#include "DNA_defs.h"
 #include "DNA_ID.h"
-#include "DNA_listBase.h"
 #include "DNA_curve_types.h"
+#include "DNA_defs.h"
+#include "DNA_listBase.h"
 
 typedef struct Mask {
   ID id;
@@ -264,5 +263,3 @@ enum {
 enum {
   MASK_ANIMF_EXPAND = (1 << 4),
 };
-
-#endif /* __DNA_MASK_TYPES_H__ */

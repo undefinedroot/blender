@@ -21,8 +21,7 @@
  * \ingroup spfile
  */
 
-#ifndef __FILELIST_H__
-#define __FILELIST_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -62,8 +61,8 @@ void filelist_setfilter_options(struct FileList *filelist,
                                 const bool do_filter,
                                 const bool hide_dot,
                                 const bool hide_parent,
-                                const unsigned int filter,
-                                const unsigned int filter_id,
+                                const uint64_t filter,
+                                const uint64_t filter_id,
                                 const char *filter_glob,
                                 const char *filter_search);
 void filelist_filter(struct FileList *filelist);
@@ -125,12 +124,12 @@ void filelist_entry_parent_select_set(struct FileList *filelist,
 void filelist_setrecursion(struct FileList *filelist, const int recursion_level);
 
 struct BlendHandle *filelist_lib(struct FileList *filelist);
-bool filelist_islibrary(struct FileList *filelist, char *dir, char **group);
+bool filelist_islibrary(struct FileList *filelist, char *dir, char **r_group);
 void filelist_freelib(struct FileList *filelist);
 
 void filelist_readjob_start(struct FileList *filelist, const struct bContext *C);
-void filelist_readjob_stop(struct wmWindowManager *wm, struct ScrArea *sa);
-int filelist_readjob_running(struct wmWindowManager *wm, struct ScrArea *sa);
+void filelist_readjob_stop(struct wmWindowManager *wm, struct Scene *owner_scene);
+int filelist_readjob_running(struct wmWindowManager *wm, struct Scene *owner_scene);
 
 bool filelist_cache_previews_update(struct FileList *filelist);
 void filelist_cache_previews_set(struct FileList *filelist, const bool use_previews);
@@ -138,6 +137,4 @@ bool filelist_cache_previews_running(struct FileList *filelist);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

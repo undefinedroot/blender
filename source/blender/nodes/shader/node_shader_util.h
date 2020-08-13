@@ -21,18 +21,17 @@
  * \ingroup nodes
  */
 
-#ifndef __NODE_SHADER_UTIL_H__
-#define __NODE_SHADER_UTIL_H__
+#pragma once
 
-#include <math.h>
 #include <float.h>
+#include <math.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_color_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -40,8 +39,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 
-#include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_math.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_rand.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
@@ -69,8 +69,21 @@
 #include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
 
+#ifdef __cplusplus
+#  include "FN_multi_function_builder.hh"
+
+#  include "NOD_node_tree_multi_function.hh"
+
+#  include "BLI_color.hh"
+#  include "BLI_float3.hh"
+
+extern "C" {
+#endif
+
 bool sh_node_poll_default(struct bNodeType *ntype, struct bNodeTree *ntree);
 void sh_node_type_base(
+    struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
+void sh_fn_node_type_base(
     struct bNodeType *ntype, int type, const char *name, short nclass, short flag);
 
 /* ********* exec data struct, remains internal *********** */
@@ -99,4 +112,6 @@ void ntreeExecGPUNodes(struct bNodeTreeExec *exec,
                        struct GPUMaterial *mat,
                        struct bNode *output_node);
 
+#ifdef __cplusplus
+}
 #endif

@@ -17,12 +17,15 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_MOVIECLIP_H__
-#define __BKE_MOVIECLIP_H__
+#pragma once
 
 /** \file
  * \ingroup bke
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Depsgraph;
 struct ImBuf;
@@ -32,14 +35,7 @@ struct MovieClipScopes;
 struct MovieClipUser;
 struct MovieDistortion;
 
-void BKE_movieclip_free(struct MovieClip *clip);
-
-void BKE_movieclip_copy_data(struct Main *bmain,
-                             struct MovieClip *clip_dst,
-                             const struct MovieClip *clip_src,
-                             const int flag);
 struct MovieClip *BKE_movieclip_copy(struct Main *bmain, const struct MovieClip *clip);
-void BKE_movieclip_make_local(struct Main *bmain, struct MovieClip *clip, const bool lib_local);
 
 struct MovieClip *BKE_movieclip_file_add(struct Main *bmain, const char *name);
 struct MovieClip *BKE_movieclip_file_add_exists_ex(struct Main *bmain,
@@ -116,6 +112,11 @@ bool BKE_movieclip_put_frame_if_possible(struct MovieClip *clip,
                                          struct MovieClipUser *user,
                                          struct ImBuf *ibuf);
 
+struct GPUTexture *BKE_movieclip_get_gpu_texture(struct MovieClip *clip,
+                                                 struct MovieClipUser *cuser);
+
+void BKE_movieclip_free_gputexture(struct MovieClip *clip);
+
 /* Dependency graph evaluation. */
 
 void BKE_movieclip_eval_update(struct Depsgraph *depsgraph,
@@ -132,4 +133,6 @@ void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, struct Mov
 #define MOVIECLIP_DISABLE_BLUE (1 << 2)
 #define MOVIECLIP_PREVIEW_GRAYSCALE (1 << 3)
 
+#ifdef __cplusplus
+}
 #endif

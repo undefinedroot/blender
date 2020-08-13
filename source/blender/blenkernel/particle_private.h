@@ -21,8 +21,11 @@
  * \ingroup bke
  */
 
-#ifndef __PARTICLE_PRIVATE_H__
-#define __PARTICLE_PRIVATE_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct ParticleChildModifierContext {
   ParticleThreadContext *thread_ctx;
@@ -65,4 +68,6 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
                         ParticleKey *state,
                         float t);
 
-#endif /* __PARTICLE_PRIVATE_H__ */
+#ifdef __cplusplus
+}
+#endif

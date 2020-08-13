@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __FREESTYLE_ADVANCED_STROKE_SHADERS_H__
-#define __FREESTYLE_ADVANCED_STROKE_SHADERS_H__
+#pragma once
 
 /** \file
  * \ingroup freestyle
@@ -35,7 +34,7 @@ class CalligraphicShader : public StrokeShader {
  public:
   /*! Builds the shader.
    *  \param iMinThickness:
-   *    The minimum thickness in the direction perpandicular to the main direction.
+   *    The minimum thickness in the direction perpendicular to the main direction.
    *  \param iMaxThickness:
    *    The maximum thickness in the main direction.
    *  \param iOrientation:
@@ -232,5 +231,3 @@ class OmissionShader : public StrokeShader {
 };
 
 } /* namespace Freestyle */
-
-#endif  // __FREESTYLE_ADVANCED_STROKE_SHADERS_H__

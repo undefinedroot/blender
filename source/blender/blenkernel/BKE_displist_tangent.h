@@ -14,13 +14,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_DISPLIST_TANGENT_H__
-#define __BKE_DISPLIST_TANGENT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void BKE_displist_tangent_calc(const DispList *dl, float (*fnormals)[3], float (**r_tangent)[4]);
 
-#endif /* __BKE_DISPLIST_TANGENT_H__ */
+#ifdef __cplusplus
+}
+#endif

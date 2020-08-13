@@ -17,22 +17,21 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_STRING_H__
-#define __BLI_STRING_H__
+#pragma once
 
 /** \file
  * \ingroup bli
  */
 
-#include <stdarg.h>
 #include <inttypes.h>
+#include <stdarg.h>
+
+#include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
-#include "BLI_utildefines_variadic.h"
 
 char *BLI_strdupn(const char *str, const size_t len) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT
     ATTR_NONNULL();
@@ -118,6 +117,7 @@ int BLI_str_index_in_array_n(const char *__restrict str,
 int BLI_str_index_in_array(const char *__restrict str, const char **__restrict str_array)
     ATTR_NONNULL();
 
+bool BLI_str_startswith(const char *__restrict str, const char *__restrict start) ATTR_NONNULL();
 bool BLI_str_endswith(const char *__restrict str, const char *__restrict end) ATTR_NONNULL();
 bool BLI_strn_endswith(const char *__restrict str, const char *__restrict end, size_t length)
     ATTR_NONNULL();
@@ -205,5 +205,3 @@ int BLI_string_find_split_words(const char *str,
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_STRING_H__ */

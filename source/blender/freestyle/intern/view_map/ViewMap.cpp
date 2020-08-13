@@ -22,8 +22,8 @@
 #include <float.h>
 
 #include "ViewMap.h"
-#include "ViewMapIterators.h"
 #include "ViewMapAdvancedIterators.h"
+#include "ViewMapIterators.h"
 
 #include "../geometry/GeomUtils.h"
 
@@ -323,18 +323,16 @@ static bool ViewEdgeComp(ViewVertex::directedViewEdge &dve1, ViewVertex::directe
     if (v2.y() < 0) {
       return true;
     }
-    else {
-      return (v1.x() > v2.x());
-    }
+
+    return (v1.x() > v2.x());
   }
-  else {
-    if (v2.y() > 0) {
-      return false;
-    }
-    else {
-      return (v1.x() < v2.x());
-    }
+
+  if (v2.y() > 0) {
+    return false;
   }
+
+  return (v1.x() < v2.x());
+
   return false;
 }
 
@@ -386,7 +384,7 @@ void TVertex::setBackEdgeA(ViewEdge *iBackEdgeA, bool incoming)
   if (!_sortedEdges.empty()) {
     edge_pointers_container::iterator dve = _sortedEdges.begin(), dveend = _sortedEdges.end();
     for (; (dve != dveend) && ViewEdgeComp(**dve, _BackEdgeA); ++dve) {
-      ;
+      /* pass */
     }
     _sortedEdges.insert(dve, &_BackEdgeA);
   }
@@ -563,7 +561,7 @@ void NonTVertex::AddOutgoingViewEdge(ViewEdge *iVEdge)
   if (!_ViewEdges.empty()) {
     edges_container::iterator dve = _ViewEdges.begin(), dveend = _ViewEdges.end();
     for (; (dve != dveend) && ViewEdgeComp(*dve, idve); ++dve) {
-      ;
+      /* pass */
     }
     _ViewEdges.insert(dve, idve);
   }

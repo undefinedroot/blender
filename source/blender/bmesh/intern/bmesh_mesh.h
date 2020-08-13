@@ -14,12 +14,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_MESH_H__
-#define __BMESH_MESH_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
  */
+
+#include "bmesh_class.h"
 
 struct BMAllocTemplate;
 struct BMLoopNorEditDataArray;
@@ -70,7 +71,9 @@ void BM_lnorspace_err(BMesh *bm);
 struct BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
                                                                   const bool do_all_loops_of_vert);
 void BM_loop_normal_editdata_array_free(struct BMLoopNorEditDataArray *lnors_ed_arr);
-int BM_total_loop_select(BMesh *bm);
+
+bool BM_custom_loop_normals_to_vector_layer(struct BMesh *bm);
+void BM_custom_loop_normals_from_vector_layer(struct BMesh *bm, bool add_sharp_edges);
 
 void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle);
 
@@ -114,6 +117,7 @@ BLI_INLINE BMFace *BM_face_at_index(BMesh *bm, const int index)
 BMVert *BM_vert_at_index_find(BMesh *bm, const int index);
 BMEdge *BM_edge_at_index_find(BMesh *bm, const int index);
 BMFace *BM_face_at_index_find(BMesh *bm, const int index);
+BMLoop *BM_loop_at_index_find(BMesh *bm, const int index);
 
 BMVert *BM_vert_at_index_find_or_table(BMesh *bm, const int index);
 BMEdge *BM_edge_at_index_find_or_table(BMesh *bm, const int index);
@@ -166,5 +170,3 @@ void BM_mesh_vert_coords_apply(BMesh *bm, const float (*orco)[3]);
 void BM_mesh_vert_coords_apply_with_mat4(BMesh *bm,
                                          const float (*vert_coords)[3],
                                          const float mat[4][4]);
-
-#endif /* __BMESH_MESH_H__ */

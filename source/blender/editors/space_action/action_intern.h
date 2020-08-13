@@ -21,8 +21,7 @@
  * \ingroup spaction
  */
 
-#ifndef __ACTION_INTERN_H__
-#define __ACTION_INTERN_H__
+#pragma once
 
 struct ARegion;
 struct ARegionType;
@@ -42,8 +41,10 @@ void action_buttons_register(struct ARegionType *art);
 
 /* ***************************************** */
 /* action_draw.c */
-void draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *ar);
-void draw_channel_strips(struct bAnimContext *ac, struct SpaceAction *saction, struct ARegion *ar);
+void draw_channel_names(struct bContext *C, struct bAnimContext *ac, struct ARegion *region);
+void draw_channel_strips(struct bAnimContext *ac,
+                         struct SpaceAction *saction,
+                         struct ARegion *region);
 
 void timeline_draw_cache(struct SpaceAction *saction, struct Object *ob, struct Scene *scene);
 
@@ -97,6 +98,7 @@ void ACTION_OT_keyframe_type(struct wmOperatorType *ot);
 void ACTION_OT_handle_type(struct wmOperatorType *ot);
 void ACTION_OT_interpolation_type(struct wmOperatorType *ot);
 void ACTION_OT_extrapolation_type(struct wmOperatorType *ot);
+void ACTION_OT_easing_type(struct wmOperatorType *ot);
 
 void ACTION_OT_frame_jump(struct wmOperatorType *ot);
 
@@ -139,5 +141,3 @@ enum eActKeys_Mirror_Mode {
 /* action_ops.c */
 void action_operatortypes(void);
 void action_keymap(struct wmKeyConfig *keyconf);
-
-#endif /* __ACTION_INTERN_H__ */

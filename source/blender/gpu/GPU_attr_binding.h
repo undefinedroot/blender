@@ -23,10 +23,13 @@
  * GPU vertex attribute binding
  */
 
-#ifndef __GPU_ATTR_BINDING_H__
-#define __GPU_ATTR_BINDING_H__
+#pragma once
 
 #include "GPU_common.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct GPUAttrBinding {
   /** Store 4 bits for each of the 16 attributes. */
@@ -35,4 +38,6 @@ typedef struct GPUAttrBinding {
   uint16_t enabled_bits;
 } GPUAttrBinding;
 
-#endif /* __GPU_ATTR_BINDING_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -21,8 +21,7 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_MESHDATA_TYPES_H__
-#define __DNA_MESHDATA_TYPES_H__
+#pragma once
 
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
@@ -280,7 +279,7 @@ typedef struct MStringProperty {
  */
 typedef struct MDeformWeight {
   /** The index for the vertex group, must *always* be unique when in an array. */
-  int def_nr;
+  unsigned int def_nr;
   /** Weight between 0.0 and 1.0. */
   float weight;
 } MDeformWeight;
@@ -331,7 +330,7 @@ typedef struct MLoopUV {
 
 /** #MLoopUV.flag */
 enum {
-  MLOOPUV_EDGESEL = (1 << 0),
+  /* MLOOPUV_DEPRECATED = (1 << 0), MLOOPUV_EDGESEL removed */
   MLOOPUV_VERTSEL = (1 << 1),
   MLOOPUV_PINNED = (1 << 2),
 };
@@ -343,6 +342,10 @@ enum {
 typedef struct MLoopCol {
   unsigned char r, g, b, a;
 } MLoopCol;
+
+typedef struct MPropCol {
+  float color[4];
+} MPropCol;
 
 /** Multi-Resolution loop data. */
 typedef struct MDisps {
@@ -566,5 +569,3 @@ typedef struct Multires {
 /* End multi-res structs. */
 
 /** \} */
-
-#endif /* __DNA_MESHDATA_TYPES_H__ */

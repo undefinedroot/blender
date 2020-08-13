@@ -14,14 +14,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __RNA_ENUM_TYPES_H__
-#define __RNA_ENUM_TYPES_H__
+#pragma once
 
 /** \file
  * \ingroup RNA
  */
 
 #include "RNA_types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct bNodeSocketType;
 struct bNodeTreeType;
@@ -122,12 +125,13 @@ extern const EnumPropertyItem rna_enum_brush_uv_sculpt_tool_items[];
 extern const EnumPropertyItem rna_enum_brush_vertex_tool_items[];
 extern const EnumPropertyItem rna_enum_brush_weight_tool_items[];
 extern const EnumPropertyItem rna_enum_brush_gpencil_types_items[];
+extern const EnumPropertyItem rna_enum_brush_gpencil_vertex_types_items[];
+extern const EnumPropertyItem rna_enum_brush_gpencil_sculpt_types_items[];
+extern const EnumPropertyItem rna_enum_brush_gpencil_weight_types_items[];
 extern const EnumPropertyItem rna_enum_brush_image_tool_items[];
 
 extern const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[];
 extern const EnumPropertyItem rna_enum_particle_edit_disconnected_hair_brush_items[];
-extern const EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[];
-extern const EnumPropertyItem rna_enum_gpencil_weight_brush_items[];
 
 extern const EnumPropertyItem rna_enum_uv_sculpt_tool_items[];
 
@@ -190,6 +194,8 @@ extern const EnumPropertyItem rna_enum_node_socket_in_out_items[];
 extern const EnumPropertyItem rna_enum_node_math_items[];
 extern const EnumPropertyItem rna_enum_mapping_type_items[];
 extern const EnumPropertyItem rna_enum_node_vec_math_items[];
+extern const EnumPropertyItem rna_enum_node_boolean_math_items[];
+extern const EnumPropertyItem rna_enum_node_float_compare_items[];
 extern const EnumPropertyItem rna_enum_node_filter_items[];
 extern const EnumPropertyItem rna_enum_node_map_range_items[];
 extern const EnumPropertyItem rna_enum_node_clamp_items[];
@@ -218,7 +224,6 @@ extern const EnumPropertyItem rna_enum_dt_mix_mode_items[];
 extern const EnumPropertyItem rna_enum_dt_layers_select_src_items[];
 extern const EnumPropertyItem rna_enum_dt_layers_select_dst_items[];
 
-extern const EnumPropertyItem rna_enum_abc_compression_items[];
 extern const EnumPropertyItem rna_enum_context_mode_items[];
 
 extern const EnumPropertyItem rna_enum_curveprofile_preset_items[];
@@ -314,4 +319,6 @@ const EnumPropertyItem *RNA_mask_local_itemf(struct bContext *C,
 /* Non confirming, utility function. */
 const EnumPropertyItem *RNA_enum_node_tree_types_itemf_impl(struct bContext *C, bool *r_free);
 
-#endif /* __RNA_ENUM_TYPES_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -1,10 +1,12 @@
+
+#pragma BLENDER_REQUIRE(common_math_lib.glsl)
+
 /**
  * Separable Hexagonal Bokeh Blur by Colin Barré-Brisebois
  * https://colinbarrebrisebois.com/2017/04/18/hexagonal-bokeh-blur-revisited-part-1-basic-3-pass-version/
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
-uniform mat4 ProjectionMatrix;
 uniform vec2 invertedViewportSize;
 uniform vec2 nearFar;
 uniform vec3 dofParams;
@@ -21,13 +23,6 @@ uniform sampler2D noiseTex;
 #define dof_aperturesize dofParams.x
 #define dof_distance dofParams.y
 #define dof_invsensorsize dofParams.z
-
-#define M_PI 3.1415926535897932 /* pi */
-
-float max_v4(vec4 v)
-{
-  return max(max(v.x, v.y), max(v.z, v.w));
-}
 
 #define weighted_sum(a, b, c, d, e, e_sum) \
   ((a)*e.x + (b)*e.y + (c)*e.z + (d)*e.w) / max(1e-6, e_sum);
@@ -251,7 +246,7 @@ void main()
   ivec2 texel = ivec2(uv * size);
 
   vec4 color = vec4(0.0);
-  float tot = 1e-4;
+  float tot = 0.0;
 
   float coc = decode_coc(texelFetch(inputCocTex, texel, 0).rg);
   float max_radius = coc;
@@ -272,7 +267,12 @@ void main()
     tot += weight;
   }
 
-  blurColor = color / tot;
+  if (tot > 0.0) {
+    blurColor = color / tot;
+  }
+  else {
+    blurColor = textureLod(halfResColorTex, uv, 0.0);
+  }
 }
 #endif
 
@@ -385,7 +385,9 @@ void main()
  * ----------------- STEP 4 ------------------
  */
 #ifdef RESOLVE
-out vec4 finalColor;
+
+layout(location = 0) out vec4 finalColorAdd;
+layout(location = 1) out vec4 finalColorMul;
 
 void main()
 {
@@ -398,7 +400,8 @@ void main()
   float zdepth = linear_depth(depth);
   float coc = calculate_coc(zdepth);
 
-  finalColor = texture(halfResColorTex, uv);
-  finalColor.a = smoothstep(1.0, 3.0, abs(coc));
+  float blend = smoothstep(1.0, 3.0, abs(coc));
+  finalColorAdd = texture(halfResColorTex, uv) * blend;
+  finalColorMul = vec4(1.0 - blend);
 }
 #endif

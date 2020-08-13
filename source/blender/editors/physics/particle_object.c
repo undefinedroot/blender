@@ -31,15 +31,15 @@
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
+#include "BLI_math.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_bvhutils.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
@@ -59,9 +59,9 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
-#include "ED_object.h"
 
 #include "UI_resources.h"
 
@@ -104,7 +104,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
   ot->description = "Add a particle system";
 
   /* api callbacks */
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
   ot->exec = particle_system_add_exec;
 
   /* flags */
@@ -151,7 +151,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
   ot->description = "Remove the selected particle system";
 
   /* api callbacks */
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
   ot->exec = particle_system_remove_exec;
 
   /* flags */
@@ -1037,9 +1037,6 @@ static void copy_particle_edit(Depsgraph *depsgraph,
   }
   update_world_cos(ob, edit);
 
-  UI_GetThemeColor3ubv(TH_EDGE_SELECT, edit->sel_col);
-  UI_GetThemeColor3ubv(TH_WIRE, edit->nosel_col);
-
   recalc_lengths(edit);
   recalc_emitter_field(depsgraph, ob, psys);
   PE_update_object(depsgraph, scene, ob, true);
@@ -1067,7 +1064,7 @@ static void remove_particle_systems_from_object(Object *ob_to)
              eModifierType_DynamicPaint,
              eModifierType_Fluid)) {
       BLI_remlink(&ob_to->modifiers, md);
-      modifier_free(md);
+      BKE_modifier_free(md);
     }
   }
 
@@ -1141,13 +1138,13 @@ static bool copy_particle_systems_to_object(const bContext *C,
     psys_unique_name(ob_to, psys, psys->name);
 
     /* add a particle system modifier for each system */
-    md = modifier_new(eModifierType_ParticleSystem);
+    md = BKE_modifier_new(eModifierType_ParticleSystem);
     psmd = (ParticleSystemModifierData *)md;
     /* push on top of the stack, no use trying to reproduce old stack order */
     BLI_addtail(&ob_to->modifiers, md);
 
     BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", i);
-    modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
+    BKE_modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
 
     psmd->psys = psys;
 
@@ -1213,7 +1210,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 static bool copy_particle_systems_poll(bContext *C)
 {
   Object *ob;
-  if (!ED_operator_object_active_editable(C)) {
+  if (!ED_operator_object_active_local_editable(C)) {
     return false;
   }
 
@@ -1314,7 +1311,7 @@ void PARTICLE_OT_copy_particle_systems(wmOperatorType *ot)
 
 static bool duplicate_particle_systems_poll(bContext *C)
 {
-  if (!ED_operator_object_active_editable(C)) {
+  if (!ED_operator_object_active_local_editable(C)) {
     return false;
   }
   Object *ob = ED_object_active_context(C);

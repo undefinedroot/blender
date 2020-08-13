@@ -14,12 +14,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_BUFFER_H__
-#define __BLI_BUFFER_H__
+#pragma once
 
 /** \file
  * \ingroup bli
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct BLI_Buffer {
   void *data;
@@ -93,4 +96,6 @@ void _bli_buffer_free(BLI_Buffer *buffer);
 
 #define BLI_buffer_field_free(name_) _bli_buffer_free(name_)
 
-#endif /* __BLI_BUFFER_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -20,14 +20,14 @@
  * \ingroup imbcineon
  */
 
+#include "logImageCore.h"
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
-#include <math.h>
-#include "logImageCore.h"
 
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
 #include "IMB_filetype.h"
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
@@ -139,7 +139,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
     /* don't use the float buffer to save 8 bpp picture to prevent color banding
      * (there's no dithering algorithm behind the logImageSetDataRGBA function) */
 
-    fbuf = (float *)MEM_mallocN(ibuf->x * ibuf->y * 4 * sizeof(float),
+    fbuf = (float *)MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y,
                                 "fbuf in imb_save_dpx_cineon");
 
     for (y = 0; y < ibuf->y; y++) {
@@ -158,7 +158,7 @@ static int imb_save_dpx_cineon(ImBuf *ibuf, const char *filename, int use_cineon
       IMB_rect_from_float(ibuf);
     }
 
-    fbuf = (float *)MEM_mallocN(ibuf->x * ibuf->y * 4 * sizeof(float),
+    fbuf = (float *)MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y,
                                 "fbuf in imb_save_dpx_cineon");
     if (fbuf == NULL) {
       printf("DPX/Cineon: error allocating memory.\n");

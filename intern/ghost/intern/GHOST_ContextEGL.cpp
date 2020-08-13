@@ -118,7 +118,7 @@ static const char *get_egl_error_message_string(EGLint error)
     case EGL_CONTEXT_LOST:
       return (
           "A power management event has occurred. "
-          "The application must destroy all contexts and reinitialise OpenGL ES state "
+          "The application must destroy all contexts and reinitialize OpenGL ES state "
           "and objects to continue rendering.");
 
     default:
@@ -316,7 +316,7 @@ bool GHOST_ContextEGL::initContextEGLEW()
 {
   /* We have to manually get this function before we can call eglewInit, since
    * it requires a display argument. glewInit() does the same, but we only want
-   * to intialize EGLEW here. */
+   * to initialize EGLEW here. */
   eglGetDisplay = (PFNEGLGETDISPLAYPROC)eglGetProcAddress("eglGetDisplay");
   if (eglGetDisplay == NULL) {
     return false;

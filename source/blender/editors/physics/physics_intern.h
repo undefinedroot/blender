@@ -21,8 +21,7 @@
  * \ingroup edphys
  */
 
-#ifndef __PHYSICS_INTERN_H__
-#define __PHYSICS_INTERN_H__
+#pragma once
 
 struct Depsgraph;
 struct Object;
@@ -38,6 +37,7 @@ void PARTICLE_OT_select_roots(struct wmOperatorType *ot);
 void PARTICLE_OT_select_tips(struct wmOperatorType *ot);
 void PARTICLE_OT_select_random(struct wmOperatorType *ot);
 void PARTICLE_OT_select_linked(struct wmOperatorType *ot);
+void PARTICLE_OT_select_linked_pick(struct wmOperatorType *ot);
 void PARTICLE_OT_select_less(struct wmOperatorType *ot);
 void PARTICLE_OT_select_more(struct wmOperatorType *ot);
 
@@ -151,5 +151,3 @@ void RIGIDBODY_OT_constraint_remove(struct wmOperatorType *ot);
 void RIGIDBODY_OT_world_add(struct wmOperatorType *ot);
 void RIGIDBODY_OT_world_remove(struct wmOperatorType *ot);
 void RIGIDBODY_OT_world_export(struct wmOperatorType *ot);
-
-#endif /* __PHYSICS_INTERN_H__ */

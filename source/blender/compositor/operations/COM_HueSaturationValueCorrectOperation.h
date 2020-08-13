@@ -16,10 +16,10 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_HUESATURATIONVALUECORRECTOPERATION_H__
-#define __COM_HUESATURATIONVALUECORRECTOPERATION_H__
-#include "COM_NodeOperation.h"
+#pragma once
+
 #include "COM_CurveBaseOperation.h"
+#include "COM_NodeOperation.h"
 
 class HueSaturationValueCorrectOperation : public CurveBaseOperation {
  private:
@@ -46,4 +46,3 @@ class HueSaturationValueCorrectOperation : public CurveBaseOperation {
    */
   void deinitExecution();
 };
-#endif

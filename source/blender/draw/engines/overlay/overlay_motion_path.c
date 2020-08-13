@@ -22,6 +22,7 @@
 
 #include "DRW_render.h"
 
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 
 #include "DNA_armature_types.h"
@@ -48,11 +49,11 @@ void OVERLAY_motion_path_cache_init(OVERLAY_Data *vedata)
 
   sh = OVERLAY_shader_motion_path_line();
   pd->motion_path_lines_grp = grp = DRW_shgroup_create(sh, psl->motion_paths_ps);
-  DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+  DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 
   sh = OVERLAY_shader_motion_path_vert();
   pd->motion_path_points_grp = grp = DRW_shgroup_create(sh, psl->motion_paths_ps);
-  DRW_shgroup_uniform_block_persistent(grp, "globalsBlock", G_draw.block_ubo);
+  DRW_shgroup_uniform_block(grp, "globalsBlock", G_draw.block_ubo);
 }
 
 /* Just convert the CPU cache to GPU cache. */
@@ -148,32 +149,33 @@ static void motion_path_cache(OVERLAY_Data *vedata,
 
   /* Draw curve-line of path. */
   if (show_lines) {
-    int motion_path_settings[4] = {cfra, sfra, efra, mpath->start_frame};
+    const int motion_path_settings[4] = {cfra, sfra, efra, mpath->start_frame};
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->motion_path_lines_grp);
     DRW_shgroup_uniform_ivec4_copy(grp, "mpathLineSettings", motion_path_settings);
     DRW_shgroup_uniform_int_copy(grp, "lineThickness", mpath->line_thickness);
     DRW_shgroup_uniform_bool_copy(grp, "selected", selected);
     DRW_shgroup_uniform_vec3_copy(grp, "customColor", color);
     /* Only draw the required range. */
-    DRW_shgroup_call_range(grp, mpath_batch_line_get(mpath), start_index, len);
+    DRW_shgroup_call_range(grp, NULL, mpath_batch_line_get(mpath), start_index, len);
   }
 
   /* Draw points. */
   {
     int pt_size = max_ii(mpath->line_thickness - 1, 1);
-    int motion_path_settings[4] = {pt_size, cfra, mpath->start_frame, stepsize};
+    const int motion_path_settings[4] = {pt_size, cfra, mpath->start_frame, stepsize};
     DRWShadingGroup *grp = DRW_shgroup_create_sub(pd->motion_path_points_grp);
     DRW_shgroup_uniform_ivec4_copy(grp, "mpathPointSettings", motion_path_settings);
     DRW_shgroup_uniform_bool_copy(grp, "showKeyFrames", show_keyframes);
     DRW_shgroup_uniform_vec3_copy(grp, "customColor", color);
     /* Only draw the required range. */
-    DRW_shgroup_call_range(grp, mpath_batch_points_get(mpath), start_index, len);
+    DRW_shgroup_call_range(grp, NULL, mpath_batch_points_get(mpath), start_index, len);
   }
 
   /* Draw frame numbers at each frame-step value. */
   if (show_frame_no || (show_keyframes_no && show_keyframes)) {
     int i;
     uchar col[4], col_kf[4];
+    /* Color Management: Exception here as texts are drawn in sRGB space directly.  */
     UI_GetThemeColor3ubv(TH_TEXT_HI, col);
     UI_GetThemeColor3ubv(TH_VERTEX_SELECT, col_kf);
     col[3] = col_kf[3] = 255;
@@ -210,7 +212,7 @@ void OVERLAY_motion_path_cache_populate(OVERLAY_Data *vedata, Object *ob)
 
   if (ob->type == OB_ARMATURE) {
     if (OVERLAY_armature_is_pose_mode(ob, draw_ctx)) {
-      for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+      LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
         if (pchan->mpath) {
           motion_path_cache(vedata, ob, pchan, &ob->pose->avs, pchan->mpath);
         }

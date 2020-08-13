@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __MATHUTILS_H__
-#define __MATHUTILS_H__
+#pragma once
 
 /** \file
  * \ingroup pymathutils
@@ -69,11 +68,11 @@ typedef struct {
 } BaseMathObject;
 
 /* types */
-#include "mathutils_Vector.h"
+#include "mathutils_Color.h"
+#include "mathutils_Euler.h"
 #include "mathutils_Matrix.h"
 #include "mathutils_Quaternion.h"
-#include "mathutils_Euler.h"
-#include "mathutils_Color.h"
+#include "mathutils_Vector.h"
 
 /* avoid checking all types */
 #define BaseMathObject_CheckExact(v) (Py_TYPE(v)->tp_dealloc == (destructor)BaseMathObject_dealloc)
@@ -195,5 +194,3 @@ int column_vector_multiplication(float rvec[4], VectorObject *vec, MatrixObject 
 /* dynstr as python string utility functions */
 PyObject *mathutils_dynstr_to_py(struct DynStr *ds);
 #endif
-
-#endif /* __MATHUTILS_H__ */

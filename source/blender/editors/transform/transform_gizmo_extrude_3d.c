@@ -18,10 +18,10 @@
  * \ingroup edmesh
  */
 
-#include "BLI_utildefines.h"
 #include "BLI_array_utils.h"
-#include "BLI_math.h"
 #include "BLI_listbase.h"
+#include "BLI_math.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -30,15 +30,14 @@
 #include "RNA_define.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "WM_types.h"
 
-#include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_view3d.h"
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
+#include "ED_screen.h"
+#include "ED_transform.h"
 
 #include "UI_resources.h"
 
@@ -214,7 +213,7 @@ static void gizmo_mesh_extrude_setup(const bContext *C, wmGizmoGroup *gzgroup)
     PointerRNA macroptr = RNA_pointer_get(ptr, "TRANSFORM_OT_translate");
     RNA_boolean_set(&macroptr, "release_confirm", true);
 
-    bool constraint[3] = {0, 0, 0};
+    const bool constraint[3] = {0, 0, 0};
     RNA_boolean_set_array(&macroptr, "constraint_axis", constraint);
   }
 
@@ -469,11 +468,11 @@ static void gizmo_mesh_extrude_message_subscribe(const bContext *C,
                                                  struct wmMsgBus *mbus)
 {
   GizmoExtrudeGroup *ggd = gzgroup->customdata;
-  ARegion *ar = CTX_wm_region(C);
+  ARegion *region = CTX_wm_region(C);
 
   /* Subscribe to view properties */
   wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
-      .owner = ar,
+      .owner = region,
       .user_data = gzgroup->parent_gzmap,
       .notify = WM_gizmo_do_msg_notify_tag_refresh,
   };

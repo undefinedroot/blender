@@ -13,12 +13,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-#ifndef __BKE_KEYCONFIG_H__
-#define __BKE_KEYCONFIG_H__
+#pragma once
 
 /** \file
  * \ingroup bke
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Based on #BKE_addon_pref_type_init and friends */
 
@@ -33,7 +36,7 @@ typedef struct wmKeyConfigPrefType_Runtime {
   char idname[64];
 
   /* RNA integration */
-  ExtensionRNA ext;
+  ExtensionRNA rna_ext;
 } wmKeyConfigPrefType_Runtime;
 
 #else
@@ -69,4 +72,6 @@ void BKE_keyconfig_pref_filter_items(struct UserDef *userdef,
                                      bool (*filter_fn)(struct wmKeyMapItem *kmi, void *user_data),
                                      void *user_data);
 
-#endif /* __BKE_KEYCONFIG_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -29,33 +29,31 @@
 // iTaSC headers
 #ifdef WITH_IK_ITASC
 #  include "Armature.hpp"
-#  include "MovingFrame.hpp"
-#  include "CopyPose.hpp"
-#  include "WSDLSSolver.hpp"
-#  include "WDLSSolver.hpp"
-#  include "Scene.hpp"
 #  include "Cache.hpp"
+#  include "CopyPose.hpp"
 #  include "Distance.hpp"
+#  include "MovingFrame.hpp"
+#  include "Scene.hpp"
+#  include "WDLSSolver.hpp"
+#  include "WSDLSSolver.hpp"
 #endif
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "BIK_api.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
-#include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_constraint.h"
-#include "DNA_object_types.h"
+#include "BKE_global.h"
 #include "DNA_action_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-};
 
 #include "itasc_plugin.h"
 
@@ -119,12 +117,8 @@ struct IK_Target {
   }
   ~IK_Target()
   {
-    if (constraint) {
-      delete constraint;
-    }
-    if (target) {
-      delete target;
-    }
+    delete constraint;
+    delete target;
   }
 };
 
@@ -198,29 +192,17 @@ struct IK_Scene {
   ~IK_Scene()
   {
     // delete scene first
-    if (scene) {
-      delete scene;
-    }
+    delete scene;
     for (std::vector<IK_Target *>::iterator it = targets.begin(); it != targets.end(); ++it) {
       delete (*it);
     }
     targets.clear();
-    if (channels) {
-      delete[] channels;
-    }
-    if (solver) {
-      delete solver;
-    }
-    if (armature) {
-      delete armature;
-    }
-    if (base) {
-      delete base;
-    }
+    delete[] channels;
+    delete solver;
+    delete armature;
+    delete base;
     // delete cache last
-    if (cache) {
-      delete cache;
-    }
+    delete cache;
   }
 };
 
@@ -464,24 +446,21 @@ static double EulerAngleFromMatrix(const KDL::Rotation &R, int axis)
     if (axis == 0) {
       return -KDL::atan2(R(1, 2), R(2, 2));
     }
-    else if (axis == 1) {
+    if (axis == 1) {
       return KDL::atan2(-R(0, 2), t);
     }
-    else {
-      return -KDL::atan2(R(0, 1), R(0, 0));
-    }
+
+    return -KDL::atan2(R(0, 1), R(0, 0));
   }
-  else {
-    if (axis == 0) {
-      return -KDL::atan2(-R(2, 1), R(1, 1));
-    }
-    else if (axis == 1) {
-      return KDL::atan2(-R(0, 2), t);
-    }
-    else {
-      return 0.0f;
-    }
+
+  if (axis == 0) {
+    return -KDL::atan2(-R(2, 1), R(1, 1));
   }
+  if (axis == 1) {
+    return KDL::atan2(-R(0, 2), t);
+  }
+
+  return 0.0f;
 }
 
 static double ComputeTwist(const KDL::Rotation &R)

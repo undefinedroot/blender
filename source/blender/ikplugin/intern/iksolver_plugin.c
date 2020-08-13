@@ -32,10 +32,10 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 
-#include "DNA_object_types.h"
 #include "DNA_action_types.h"
-#include "DNA_constraint_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_object_types.h"
 
 #include "IK_solver.h"
 #include "iksolver_plugin.h"
@@ -394,7 +394,7 @@ static void execute_posetree(struct Depsgraph *depsgraph,
     IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
 
     if (tree->stretch && (pchan->ikstretch > 0.0f)) {
-      const float ikstretch_sq = SQUARE(pchan->ikstretch);
+      const float ikstretch_sq = square_f(pchan->ikstretch);
       /* this function does its own clamping */
       IK_SetStiffness(seg, IK_TRANS_Y, 1.0f - ikstretch_sq);
       IK_SetLimit(seg, IK_TRANS_Y, IK_STRETCH_STIFF_MIN, IK_STRETCH_STIFF_MAX);
@@ -452,21 +452,20 @@ static void execute_posetree(struct Depsgraph *depsgraph,
         /* don't solve IK when we are setting the pole angle */
         break;
       }
-      else {
-        mul_m4_m4m4(goal, goalinv, rootmat);
-        copy_v3_v3(polepos, goal[3]);
-        poleconstrain = 1;
 
-        /* for pole targets, we blend the result of the ik solver
-         * instead of the target position, otherwise we can't get
-         * a smooth transition */
-        resultblend = 1;
-        resultinf = target->con->enforce;
+      mul_m4_m4m4(goal, goalinv, rootmat);
+      copy_v3_v3(polepos, goal[3]);
+      poleconstrain = 1;
 
-        if (data->flag & CONSTRAINT_IK_GETANGLE) {
-          poleangledata = data;
-          data->flag &= ~CONSTRAINT_IK_GETANGLE;
-        }
+      /* for pole targets, we blend the result of the ik solver
+       * instead of the target position, otherwise we can't get
+       * a smooth transition */
+      resultblend = 1;
+      resultinf = target->con->enforce;
+
+      if (data->flag & CONSTRAINT_IK_GETANGLE) {
+        poleangledata = data;
+        data->flag &= ~CONSTRAINT_IK_GETANGLE;
       }
     }
 
@@ -654,7 +653,7 @@ void iksolver_release_tree(struct Scene *UNUSED(scene), struct Object *ob, float
 
 void iksolver_clear_data(bPose *pose)
 {
-  for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+  LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
     if ((pchan->flag & POSE_IKTREE) == 0) {
       continue;
     }

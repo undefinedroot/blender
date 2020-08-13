@@ -21,8 +21,7 @@
  * \ingroup edsculpt
  */
 
-#ifndef __PAINT_INTERN_H__
-#define __PAINT_INTERN_H__
+#pragma once
 
 struct ARegion;
 struct Brush;
@@ -41,6 +40,7 @@ struct ViewContext;
 struct bContext;
 struct rcti;
 struct wmEvent;
+struct wmKeyConfig;
 struct wmOperator;
 struct wmOperatorType;
 struct wmWindowManager;
@@ -89,10 +89,7 @@ void *paint_stroke_mode_data(struct PaintStroke *stroke);
 float paint_stroke_distance_get(struct PaintStroke *stroke);
 void paint_stroke_set_mode_data(struct PaintStroke *stroke, void *mode_data);
 bool paint_poll(struct bContext *C);
-void paint_cursor_start(struct bContext *C, bool (*poll)(struct bContext *C));
-void paint_cursor_start_explicit(struct Paint *p,
-                                 struct wmWindowManager *wm,
-                                 bool (*poll)(struct bContext *C));
+void paint_cursor_start(struct Paint *p, bool (*poll)(struct bContext *C));
 void paint_cursor_delete_textures(void);
 
 /* paint_vertex.c */
@@ -173,7 +170,7 @@ struct VertProjHandle *ED_vpaint_proj_handle_create(struct Depsgraph *depsgraph,
 void ED_vpaint_proj_handle_update(struct Depsgraph *depsgraph,
                                   struct VertProjHandle *vp_handle,
                                   /* runtime vars */
-                                  struct ARegion *ar,
+                                  struct ARegion *region,
                                   const float mval_fl[2]);
 void ED_vpaint_proj_handle_free(struct VertProjHandle *vp_handle);
 
@@ -260,7 +257,7 @@ void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
 bool paint_convert_bb_to_rect(struct rcti *rect,
                               const float bb_min[3],
                               const float bb_max[3],
-                              const struct ARegion *ar,
+                              const struct ARegion *region,
                               struct RegionView3D *rv3d,
                               struct Object *ob);
 
@@ -268,7 +265,7 @@ bool paint_convert_bb_to_rect(struct rcti *rect,
  * screen_rect from screen into object-space (essentially converting a
  * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
-                              const struct ARegion *ar,
+                              const struct ARegion *region,
                               struct Object *ob,
                               const struct rcti *screen_rect);
 
@@ -287,7 +284,7 @@ void paint_get_tex_pixel_col(const struct MTex *mtex,
                              struct ColorSpace *colorspace);
 
 void paint_sample_color(
-    struct bContext *C, struct ARegion *ar, int x, int y, bool texpaint_proj, bool palette);
+    struct bContext *C, struct ARegion *region, int x, int y, bool texpaint_proj, bool palette);
 
 void paint_stroke_operator_properties(struct wmOperatorType *ot);
 
@@ -343,6 +340,7 @@ typedef enum {
 
 void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot);
 void PAINT_OT_mask_lasso_gesture(struct wmOperatorType *ot);
+void PAINT_OT_mask_box_gesture(struct wmOperatorType *ot);
 
 /* paint_curve.c */
 void PAINTCURVE_OT_new(struct wmOperatorType *ot);
@@ -368,5 +366,3 @@ void paint_delete_blur_kernel(BlurKernel *);
 
 /* paint curve defines */
 #define PAINT_CURVE_NUM_SEGMENTS 40
-
-#endif /* __PAINT_INTERN_H__ */

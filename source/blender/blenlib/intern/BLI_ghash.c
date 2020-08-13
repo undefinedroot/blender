@@ -22,20 +22,18 @@
  *
  * A general (pointer -> pointer) chaining hash table
  * for 'Abstract Data Types' (known as an ADT Hash Table).
- *
- * \note edgehash.c is based on this, make sure they stay in sync.
  */
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
 #include <limits.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_mempool.h"
 #include "BLI_sys_types.h" /* for intptr_t support */
 #include "BLI_utildefines.h"
-#include "BLI_mempool.h"
 
 #define GHASH_INTERNAL_API
 #include "BLI_ghash.h" /* own include */
@@ -540,10 +538,8 @@ BLI_INLINE bool ghash_insert_safe(GHash *gh,
     }
     return false;
   }
-  else {
-    ghash_insert_ex(gh, key, val, bucket_index);
-    return true;
-  }
+  ghash_insert_ex(gh, key, val, bucket_index);
+  return true;
 }
 
 BLI_INLINE bool ghash_insert_safe_keyonly(GHash *gh,
@@ -566,10 +562,8 @@ BLI_INLINE bool ghash_insert_safe_keyonly(GHash *gh,
     }
     return false;
   }
-  else {
-    ghash_insert_ex_keyonly(gh, key, bucket_index);
-    return true;
-  }
+  ghash_insert_ex_keyonly(gh, key, bucket_index);
+  return true;
 }
 
 /**
@@ -794,9 +788,7 @@ void *BLI_ghash_replace_key(GHash *gh, void *key)
     e->e.key = key;
     return key_prev;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /**
@@ -917,9 +909,7 @@ bool BLI_ghash_remove(GHash *gh,
     BLI_mempool_free(gh->entrypool, e);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 /* same as above but return the value,
@@ -942,9 +932,7 @@ void *BLI_ghash_popkey(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp)
     BLI_mempool_free(gh->entrypool, e);
     return val;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /**
@@ -977,10 +965,9 @@ bool BLI_ghash_pop(GHash *gh, GHashIterState *state, void **r_key, void **r_val)
     BLI_mempool_free(gh->entrypool, e);
     return true;
   }
-  else {
-    *r_key = *r_val = NULL;
-    return false;
-  }
+
+  *r_key = *r_val = NULL;
+  return false;
 }
 
 /**
@@ -1058,7 +1045,7 @@ void BLI_ghash_flag_clear(GHash *gh, uint flag)
  * #BLI_ghash_len(gh) times before becoming done.
  *
  * \param gh: The GHash to iterate over.
- * \return Pointer to a new DynStr.
+ * \return Pointer to a new iterator.
  */
 GHashIterator *BLI_ghashIterator_new(GHash *gh)
 {
@@ -1248,10 +1235,9 @@ bool BLI_gset_pop(GSet *gs, GSetIterState *state, void **r_key)
     BLI_mempool_free(((GHash *)gs)->entrypool, e);
     return true;
   }
-  else {
-    *r_key = NULL;
-    return false;
-  }
+
+  *r_key = NULL;
+  return false;
 }
 
 void BLI_gset_clear_ex(GSet *gs, GSetKeyFreeFP keyfreefp, const uint nentries_reserve)
@@ -1311,9 +1297,7 @@ void *BLI_gset_pop_key(GSet *gs, const void *key)
     BLI_mempool_free(((GHash *)gs)->entrypool, e);
     return key_ret;
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 /** \} */

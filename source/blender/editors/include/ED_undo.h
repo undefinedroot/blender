@@ -18,10 +18,13 @@
  * \ingroup editors
  */
 
-#ifndef __ED_UNDO_H__
-#define __ED_UNDO_H__
+#pragma once
 
 #include "BLI_compiler_attrs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Base;
 struct CLG_LogRef;
@@ -82,4 +85,6 @@ void ED_undosys_type_free(void);
 /* memfile_undo.c */
 struct MemFile *ED_undosys_stack_memfile_get_active(struct UndoStack *ustack);
 
-#endif /* __ED_UNDO_H__ */
+#ifdef __cplusplus
+}
+#endif

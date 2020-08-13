@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_GHASH_H__
-#define __BLI_GHASH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -28,8 +27,9 @@
  * This is also used to implement a 'set' (see #GSet below).
  */
 
-#include "BLI_sys_types.h" /* for bool */
 #include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+#include "BLI_sys_types.h" /* for bool */
 
 #ifdef __cplusplus
 extern "C" {
@@ -415,5 +415,3 @@ GSet *BLI_gset_int_new(const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_GHASH_H__ */

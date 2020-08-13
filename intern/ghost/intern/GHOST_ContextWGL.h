@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_CONTEXTWGL_H__
-#define __GHOST_CONTEXTWGL_H__
+#pragma once
 
 //#define WIN32_COMPOSITING
 
@@ -35,6 +34,9 @@
 #endif
 
 class GHOST_ContextWGL : public GHOST_Context {
+  /* XR code needs low level graphics data to send to OpenXR. */
+  friend class GHOST_XrGraphicsBindingOpenGL;
+
  public:
   /**
    * Constructor.
@@ -127,5 +129,3 @@ class GHOST_ContextWGL : public GHOST_Context {
   static HGLRC s_sharedHGLRC;
   static int s_sharedCount;
 };
-
-#endif  // __GHOST_CONTEXTWGL_H__

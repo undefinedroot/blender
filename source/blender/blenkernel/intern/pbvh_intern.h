@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PBVH_INTERN_H__
-#define __PBVH_INTERN_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -105,6 +104,9 @@ struct PBVHNode {
   float (*bm_orco)[3];
   int (*bm_ortri)[3];
   int bm_tot_ortri;
+
+  /* Used to store the brush color during a stroke and composite it over the original color */
+  PBVHColorBufferNode color_buffer;
 };
 
 typedef enum {
@@ -134,6 +136,11 @@ struct PBVH {
   const MLoopTri *looptri;
   CustomData *vdata;
   CustomData *ldata;
+  CustomData *pdata;
+
+  int face_sets_color_seed;
+  int face_sets_color_default;
+  int *face_sets;
 
   /* Grid Data */
   CCGKey gridkey;
@@ -154,6 +161,8 @@ struct PBVH {
   /* flag are verts/faces deformed */
   bool deformed;
   bool show_mask;
+  bool show_face_sets;
+  bool respect_hide;
 
   /* Dynamic topology */
   BMesh *bm;
@@ -162,7 +171,11 @@ struct PBVH {
   int cd_vert_node_offset;
   int cd_face_node_offset;
 
+  float planes[6][4];
+  int num_planes;
+
   struct BMLog *bm_log;
+  struct SubdivCCG *subdiv_ccg;
 };
 
 /* pbvh.c */
@@ -221,5 +234,3 @@ bool pbvh_bmesh_node_nearest_to_ray(PBVHNode *node,
                                     bool use_original);
 
 void pbvh_bmesh_normals_update(PBVHNode **nodes, int totnode);
-
-#endif

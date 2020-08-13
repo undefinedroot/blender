@@ -16,10 +16,10 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_GAUSSIANXBLUROPERATION_H__
-#define __COM_GAUSSIANXBLUROPERATION_H__
-#include "COM_NodeOperation.h"
+#pragma once
+
 #include "COM_BlurBaseOperation.h"
+#include "COM_NodeOperation.h"
 
 class GaussianXBlurOperation : public BlurBaseOperation {
  private:
@@ -65,4 +65,3 @@ class GaussianXBlurOperation : public BlurBaseOperation {
     this->setOpenCL(m_data.sizex >= 128);
   }
 };
-#endif

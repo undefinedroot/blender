@@ -22,10 +22,10 @@
 
 #include "../BPy_Convert.h"
 #include "../BPy_Id.h"
+#include "../BPy_MediumType.h"
 #include "../Interface0D/BPy_SVertex.h"
 #include "../Interface0D/CurvePoint/BPy_StrokeVertex.h"
 #include "../Iterator/BPy_StrokeVertexIterator.h"
-#include "../BPy_MediumType.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -157,7 +157,8 @@ static PyObject *Stroke_resample(BPy_Stroke *self, PyObject *args, PyObject *kwd
       return NULL;
     }
   }
-  else if (PyErr_Clear(), PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &f)) {
+  else if ((void)PyErr_Clear(),
+           PyArg_ParseTupleAndKeywords(args, kwds, "f", (char **)kwlist_2, &f)) {
     if (self->s->Resample(f) < 0) {
       PyErr_SetString(PyExc_RuntimeError, "Stroke resampling (by vertex interval) failed");
       return NULL;
@@ -262,7 +263,7 @@ PyDoc_STRVAR(Stroke_stroke_vertices_begin_doc,
              ".. method:: stroke_vertices_begin(t=0.0)\n"
              "\n"
              "   Returns a StrokeVertexIterator pointing on the first StrokeVertex of\n"
-             "   the Stroke. One can specify a sampling value to resample the Stroke\n"
+             "   the Stroke. One can specify a sampling value to re-sample the Stroke\n"
              "   on the fly if needed.\n"
              "\n"
              "   :arg t: The resampling value with which we want our Stroke to be\n"

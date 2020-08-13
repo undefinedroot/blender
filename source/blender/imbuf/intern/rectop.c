@@ -24,15 +24,15 @@
 
 #include <stdlib.h>
 
-#include "BLI_utildefines.h"
-#include "BLI_rect.h"
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
 #include "BLI_math_color_blend.h"
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
 
 #include "IMB_colormanagement.h"
 
@@ -610,7 +610,7 @@ void IMB_rectblend(ImBuf *dbuf,
       }
 
       if (do_float) {
-        memcpy(drectf, srectf, width * sizeof(float) * 4);
+        memcpy(drectf, srectf, sizeof(float[4]) * width);
         drectf += destskip * 4;
         srectf += srcskip * 4;
       }

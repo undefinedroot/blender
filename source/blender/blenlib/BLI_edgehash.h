@@ -14,14 +14,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_EDGEHASH_H__
-#define __BLI_EDGEHASH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_utildefines.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct EdgeHash;
 typedef struct EdgeHash EdgeHash;
@@ -150,4 +154,6 @@ BLI_INLINE bool BLI_edgesetIterator_isDone(EdgeSetIterator *esi)
   return esi->index >= esi->length;
 }
 
-#endif /* __BLI_EDGEHASH_H__ */
+#ifdef __cplusplus
+}
+#endif

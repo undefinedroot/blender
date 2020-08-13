@@ -22,9 +22,7 @@
 
 #include "MEM_guardedalloc.h"
 
-extern "C" {
 #include "RE_render_ext.h"
-}
 
 /* An implementation of the Scale3X edge-extrapolation algorithm.
  *
@@ -107,9 +105,9 @@ static int extrapolate9(float *E0,
     }
     return 1;
   }
-  else {
-    return 0;
-  }
+
+  return 0;
+
 #undef PEQ
 #undef PCPY
 }

@@ -26,12 +26,12 @@
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_report.h"
 
-#include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_define.h"
 #include "RNA_enum_types.h"
 
 #include "WM_api.h"
@@ -57,7 +57,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   float cent[3], axis[3];
-  float d[3] = {0.0f, 0.0f, 0.0f};
+  const float d[3] = {0.0f, 0.0f, 0.0f};
 
   RNA_float_get_array(op->ptr, "center", cent);
   RNA_float_get_array(op->ptr, "axis", axis);

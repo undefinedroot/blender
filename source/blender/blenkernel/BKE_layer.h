@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_LAYER_H__
-#define __BKE_LAYER_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -44,10 +43,19 @@ struct Scene;
 struct View3D;
 struct ViewLayer;
 
+typedef enum eViewLayerCopyMethod {
+  VIEWLAYER_ADD_NEW = 0,
+  VIEWLAYER_ADD_EMPTY = 1,
+  VIEWLAYER_ADD_COPY = 2,
+} eViewLayerCopyMethod;
+
 struct ViewLayer *BKE_view_layer_default_view(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_default_render(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_find(const struct Scene *scene, const char *layer_name);
-struct ViewLayer *BKE_view_layer_add(struct Scene *scene, const char *name);
+struct ViewLayer *BKE_view_layer_add(Scene *scene,
+                                     const char *name,
+                                     ViewLayer *view_layer_source,
+                                     const int type);
 
 /* DEPRECATED */
 struct ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const struct Scene *scene);
@@ -128,6 +136,7 @@ void BKE_layer_collection_set_visible(struct ViewLayer *view_layer,
                                       struct LayerCollection *lc,
                                       const bool visible,
                                       const bool hierarchy);
+void BKE_layer_collection_set_flag(struct LayerCollection *lc, const int flag, const bool value);
 
 /* evaluation */
 
@@ -406,5 +415,3 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(struct Object *ob, void *user_dat
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BKE_LAYER_H__ */

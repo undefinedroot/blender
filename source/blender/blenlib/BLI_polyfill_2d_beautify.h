@@ -14,12 +14,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLI_POLYFILL_2D_BEAUTIFY_H__
-#define __BLI_POLYFILL_2D_BEAUTIFY_H__
+#pragma once
 
 /** \file
  * \ingroup bli
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Heap;
 struct MemArena;
@@ -44,4 +47,6 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(const float v1[2],
 /* avoid realloc's when creating new structures for polyfill ngons */
 #define BLI_POLYFILL_ALLOC_NGON_RESERVE 64
 
-#endif /* __BLI_POLYFILL_2D_BEAUTIFY_H__ */
+#ifdef __cplusplus
+}
+#endif

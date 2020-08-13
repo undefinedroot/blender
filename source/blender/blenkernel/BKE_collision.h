@@ -16,15 +16,14 @@
  * The Original Code is Copyright (C) Blender Foundation.
  * All rights reserved.
  */
-#ifndef __BKE_COLLISION_H__
-#define __BKE_COLLISION_H__
+#pragma once
 
 /** \file
  * \ingroup bke
  */
 
-#include <math.h>
 #include <float.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -33,6 +32,10 @@
 #include "DNA_cloth_types.h"
 
 #include "BLI_kdopbvh.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Collection;
 struct CollisionModifierData;
@@ -171,4 +174,6 @@ void BKE_collider_cache_free(struct ListBase **colliders);
 
 /////////////////////////////////////////////////
 
+#ifdef __cplusplus
+}
 #endif

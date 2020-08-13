@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_EDITMESH_H__
-#define __BKE_EDITMESH_H__
+#pragma once
 
 /** \file
  * \ingroup bke
@@ -27,6 +26,10 @@
 
 #include "BKE_customdata.h"
 #include "bmesh.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BMLoop;
 struct BMesh;
@@ -100,4 +103,6 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em, struct Mesh *me);
 void BKE_editmesh_ensure_autosmooth(BMEditMesh *em, struct Mesh *me);
 struct BoundBox *BKE_editmesh_cage_boundbox_get(BMEditMesh *em);
 
-#endif /* __BKE_EDITMESH_H__ */
+#ifdef __cplusplus
+}
+#endif

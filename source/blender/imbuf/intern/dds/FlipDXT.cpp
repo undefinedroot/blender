@@ -38,11 +38,11 @@
 
 #include <string.h>
 
-#include <Common.h>
-#include <Stream.h>
-#include <ColorBlock.h>
 #include <BlockDXT.h>
+#include <ColorBlock.h>
+#include <Common.h>
 #include <FlipDXT.h>
+#include <Stream.h>
 
 // A function that flips a DXTC block.
 typedef void (*FlipBlockFunction)(uint8_t *block);
@@ -217,7 +217,7 @@ int FlipDXTCImage(
       // no flip to do, and we're done.
       break;
     }
-    else if (mip_height == 2) {
+    if (mip_height == 2) {
       // flip the first 2 lines in each block.
       for (unsigned int i = 0; i < blocks_per_row; i++) {
         half_block_function(data + i * block_bytes);

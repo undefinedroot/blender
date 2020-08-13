@@ -21,15 +21,14 @@
  * \ingroup render
  */
 
-#ifndef __RENDER_TYPES_H__
-#define __RENDER_TYPES_H__
+#pragma once
 
 /* ------------------------------------------------------------------------- */
 /* exposed internal in render module only! */
 /* ------------------------------------------------------------------------- */
 
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_threads.h"
 
@@ -42,6 +41,10 @@ struct Main;
 struct Object;
 struct RenderEngine;
 struct ReportList;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* this is handed over to threaded hiding/passes/shading engine */
 typedef struct RenderPart {
@@ -57,7 +60,7 @@ typedef struct RenderPart {
 } RenderPart;
 
 enum {
-  PART_STATUS_NONE = 0,
+  /* PART_STATUS_NONE = 0, */ /* UNUSED */
   PART_STATUS_IN_PROGRESS = 1,
   PART_STATUS_RENDERED = 2,
   PART_STATUS_MERGED = 3,
@@ -123,11 +126,6 @@ struct Render {
   Depsgraph *pipeline_depsgraph;
   Scene *pipeline_scene_eval;
 
-#ifdef WITH_FREESTYLE
-  struct Main *freestyle_bmain;
-  ListBase freestyle_renders;
-#endif
-
   /* callbacks */
   void (*display_init)(void *handle, RenderResult *rr);
   void *dih;
@@ -165,4 +163,6 @@ struct Render {
 /* R.flag */
 #define R_ANIMATION 1
 
-#endif /* __RENDER_TYPES_H__ */
+#ifdef __cplusplus
+}
+#endif

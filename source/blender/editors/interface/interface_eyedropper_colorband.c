@@ -38,8 +38,8 @@
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_math_vector.h"
 
-#include "BKE_context.h"
 #include "BKE_colorband.h"
+#include "BKE_context.h"
 
 #include "RNA_access.h"
 
@@ -179,8 +179,8 @@ static void eyedropper_colorband_sample_segment(bContext *C,
   /* Since the mouse tends to move rather rapidly we use #BLI_bitmap_draw_2d_line_v2v2i
    * to interpolate between the reported coordinates */
   struct EyedropperColorband_Context userdata = {C, eye};
-  int p1[2] = {eye->last_x, eye->last_y};
-  int p2[2] = {mx, my};
+  const int p1[2] = {eye->last_x, eye->last_y};
+  const int p2[2] = {mx, my};
   BLI_bitmap_draw_2d_line_v2v2i(p1, p2, eyedropper_colorband_sample_callback, &userdata);
 }
 
@@ -304,16 +304,17 @@ static int eyedropper_colorband_invoke(bContext *C, wmOperator *op, const wmEven
 {
   /* init */
   if (eyedropper_colorband_init(C, op)) {
-    WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
+    wmWindow *win = CTX_wm_window(C);
+    /* Workaround for de-activating the button clearing the cursor, see T76794 */
+    UI_context_active_but_clear(C, win, CTX_wm_region(C));
+    WM_cursor_modal_set(win, WM_CURSOR_EYEDROPPER);
 
     /* add temp handler */
     WM_event_add_modal_handler(C, op);
 
     return OPERATOR_RUNNING_MODAL;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 /* Repeat operator */
@@ -329,9 +330,7 @@ static int eyedropper_colorband_exec(bContext *C, wmOperator *op)
 
     return OPERATOR_FINISHED;
   }
-  else {
-    return OPERATOR_CANCELLED;
-  }
+  return OPERATOR_CANCELLED;
 }
 
 static bool eyedropper_colorband_poll(bContext *C)

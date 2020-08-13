@@ -28,8 +28,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_customdata.h"
 #include "BKE_multires.h"
@@ -47,6 +47,7 @@ typedef struct MultiresDisplacementData {
   int grid_size;
   /* Mesh is used to read external displacement. */
   Mesh *mesh;
+  const MultiresModifierData *mmd;
   const MPoly *mpoly;
   const MDisps *mdisps;
   /* Indexed by ptex face index, contains polygon/corner which corresponds
@@ -127,10 +128,10 @@ BLI_INLINE eAverageWith read_displacement_grid(const MDisps *displacement_grid,
   if (x == 0 && y == 0) {
     return AVERAGE_WITH_ALL;
   }
-  else if (x == 0) {
+  if (x == 0) {
     return AVERAGE_WITH_PREV;
   }
-  else if (y == 0) {
+  if (y == 0) {
     return AVERAGE_WITH_NEXT;
   }
   return AVERAGE_WITH_NONE;
@@ -320,17 +321,14 @@ static int displacement_get_face_corner(MultiresDisplacementData *data,
     float dummy_corner_u, dummy_corner_v;
     return BKE_subdiv_rotate_quad_to_corner(u, v, &dummy_corner_u, &dummy_corner_v);
   }
-  else {
-    return poly_corner->corner;
-  }
+
+  return poly_corner->corner;
 }
 
 static void initialize(SubdivDisplacement *displacement)
 {
   MultiresDisplacementData *data = displacement->user_data;
-  Mesh *mesh = data->mesh;
-  /* Make sure external displacement is read. */
-  CustomData_external_read(&mesh->ldata, &mesh->id, CD_MASK_MDISPS, mesh->totloop);
+  multiresModifier_ensure_external_read(data->mesh, data->mmd);
   data->is_initialized = true;
 }
 
@@ -421,6 +419,7 @@ static void displacement_init_data(SubdivDisplacement *displacement,
   data->subdiv = subdiv;
   data->grid_size = BKE_subdiv_grid_size_from_level(mmd->totlvl);
   data->mesh = mesh;
+  data->mmd = mmd;
   data->mpoly = mesh->mpoly;
   data->mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
   data->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);

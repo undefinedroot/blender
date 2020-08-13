@@ -14,19 +14,6 @@ layout(depth_greater) out float gl_FragDepth;
 layout(location = 0) out vec4 fragColor;
 layout(location = 1) out vec4 lineOutput;
 
-#define cameraPos ViewMatrixInverse[3].xyz
-
-float get_depth_from_view_z(float z)
-{
-  if (ProjectionMatrix[3][3] == 0.0) {
-    z = (-ProjectionMatrix[3][2] / z) - ProjectionMatrix[2][2];
-  }
-  else {
-    z = z * ProjectionMatrix[2][2] / (1.0 - ProjectionMatrix[3][2]);
-  }
-  return z * 0.5 + 0.5;
-}
-
 void main()
 {
   const float sphere_radius = 0.05;
@@ -64,7 +51,7 @@ void main()
   /* Smooth lighting factor. */
   const float s = 0.2; /* [0.0-0.5] range */
   float fac = clamp((dot(n, l) * (1.0 - s)) + s, 0.0, 1.0);
-  fragColor.rgb = mix(finalStateColor, finalBoneColor, fac);
+  fragColor.rgb = mix(finalStateColor, finalBoneColor, fac * fac);
 
   /* 2x2 dither pattern to smooth the lighting. */
   float dither = (0.5 + dot(vec2(ivec2(gl_FragCoord.xy) & ivec2(1)), vec2(1.0, 2.0))) * 0.25;

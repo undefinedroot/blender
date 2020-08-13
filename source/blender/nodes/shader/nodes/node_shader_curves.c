@@ -25,14 +25,14 @@
 
 /* **************** CURVE VEC  ******************** */
 static bNodeSocketTemplate sh_node_curve_vec_in[] = {
-    {SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-    {SOCK_VECTOR, 1, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+    {SOCK_VECTOR, N_("Vector"), 0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_curve_vec_out[] = {
-    {SOCK_VECTOR, 0, N_("Vector")},
-    {-1, 0, ""},
+    {SOCK_VECTOR, N_("Vector")},
+    {-1, ""},
 };
 
 static void node_shader_exec_curve_vec(void *UNUSED(data),
@@ -121,14 +121,14 @@ void register_node_type_sh_curve_vec(void)
 
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketTemplate sh_node_curve_rgb_in[] = {
-    {SOCK_FLOAT, 1, N_("Fac"), 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_FACTOR},
-    {SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_FLOAT, N_("Fac"), 1.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_FACTOR},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate sh_node_curve_rgb_out[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {-1, ""},
 };
 
 static void node_shader_exec_curve_rgb(void *UNUSED(data),
@@ -168,7 +168,7 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
 
   CurveMapping *cumap = node->storage;
 
-  BKE_curvemapping_initialize(cumap);
+  BKE_curvemapping_init(cumap);
   BKE_curvemapping_table_RGBA(cumap, &array, &size);
   GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
 
@@ -215,20 +215,19 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat,
                           GPU_uniform(range_rgba),
                           GPU_uniform(ext_rgba[3]));
   }
-  else {
-    return GPU_stack_link(mat,
-                          node,
-                          "curves_rgb",
-                          in,
-                          out,
-                          tex,
-                          GPU_constant(&layer),
-                          GPU_uniform(range_rgba),
-                          GPU_uniform(ext_rgba[0]),
-                          GPU_uniform(ext_rgba[1]),
-                          GPU_uniform(ext_rgba[2]),
-                          GPU_uniform(ext_rgba[3]));
-  }
+
+  return GPU_stack_link(mat,
+                        node,
+                        "curves_rgb",
+                        in,
+                        out,
+                        tex,
+                        GPU_constant(&layer),
+                        GPU_uniform(range_rgba),
+                        GPU_uniform(ext_rgba[0]),
+                        GPU_uniform(ext_rgba[1]),
+                        GPU_uniform(ext_rgba[2]),
+                        GPU_uniform(ext_rgba[3]));
 }
 
 void register_node_type_sh_curve_rgb(void)

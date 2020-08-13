@@ -21,11 +21,16 @@
  * \ingroup bke
  */
 
-#ifndef __BKE_SUBDIV_TOPOLOGY_H__
-#define __BKE_SUBDIV_TOPOLOGY_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct Subdiv;
 
 int BKE_subdiv_topology_num_fvar_layers_get(const struct Subdiv *subdiv);
 
-#endif /* __BKE_SUBDIV_TOPOLOGY_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -18,18 +18,18 @@
  * \ingroup bli
  */
 
-#include <stdio.h>
+#include <limits.h>
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_ghash.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
 
 #include "BLI_scanfill.h" /* own include */
 
@@ -139,9 +139,8 @@ static int edge_isect_ls_sort_cb(void *thunk, const void *def_a_ptr, const void 
   if (a > b) {
     return -1;
   }
-  else {
-    return (a < b);
-  }
+
+  return (a < b);
 }
 
 static ScanFillEdge *edge_step(PolyInfo *poly_info,

@@ -18,15 +18,14 @@
 
 class ExecutionGroup;
 
-#ifndef __COM_EXECUTIONSYSTEM_H__
-#define __COM_EXECUTIONSYSTEM_H__
+#pragma once
 
-#include "DNA_color_types.h"
-#include "DNA_node_types.h"
-#include "COM_Node.h"
 #include "BKE_text.h"
 #include "COM_ExecutionGroup.h"
+#include "COM_Node.h"
 #include "COM_NodeOperation.h"
+#include "DNA_color_types.h"
+#include "DNA_node_types.h"
 
 /**
  * \page execution Execution model
@@ -196,5 +195,3 @@ class ExecutionSystem {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionSystem")
 #endif
 };
-
-#endif /* __COM_EXECUTIONSYSTEM_H__ */

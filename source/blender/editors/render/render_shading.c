@@ -36,12 +36,13 @@
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
+#include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
 
+#include "BKE_anim_data.h"
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -51,7 +52,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
@@ -76,10 +77,10 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
 #include "ED_curve.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
+#include "ED_object.h"
 #include "ED_render.h"
 #include "ED_scene.h"
 #include "ED_screen.h"
@@ -100,15 +101,15 @@
  */
 static Object **object_array_for_shading(bContext *C, uint *r_objects_len)
 {
-  ScrArea *sa = CTX_wm_area(C);
+  ScrArea *area = CTX_wm_area(C);
   SpaceProperties *sbuts = NULL;
   View3D *v3d = NULL;
-  if (sa != NULL) {
-    if (sa->spacetype == SPACE_PROPERTIES) {
-      sbuts = sa->spacedata.first;
+  if (area != NULL) {
+    if (area->spacetype == SPACE_PROPERTIES) {
+      sbuts = area->spacedata.first;
     }
-    else if (sa->spacetype == SPACE_VIEW3D) {
-      v3d = sa->spacedata.first;
+    else if (area->spacetype == SPACE_VIEW3D) {
+      v3d = area->spacedata.first;
     }
   }
 
@@ -161,7 +162,7 @@ void OBJECT_OT_material_slot_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = material_slot_add_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -206,7 +207,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = material_slot_remove_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -217,13 +218,38 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
   View3D *v3d = CTX_wm_view3d(C);
   bool changed_multi = false;
 
+  Object *obact = CTX_data_active_object(C);
+  const Material *mat_active = obact ? BKE_object_material_get(obact, obact->actcol) : NULL;
+
   uint objects_len = 0;
   Object **objects = object_array_for_shading(C, &objects_len);
   for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
     Object *ob = objects[ob_index];
-    if (ob->actcol <= 0) {
+    short mat_nr_active = -1;
+
+    if (ob->totcol == 0) {
       continue;
     }
+    if (obact && (mat_active == BKE_object_material_get(ob, obact->actcol))) {
+      /* Avoid searching since there may be multiple slots with the same material.
+       * For the active object or duplicates: match the material slot index first. */
+      mat_nr_active = obact->actcol - 1;
+    }
+    else {
+      /* Find the first matching material.
+       * Note: there may be multiple but that's not a common use case. */
+      for (int i = 0; i < ob->totcol; i++) {
+        const Material *mat = BKE_object_material_get(ob, i + 1);
+        if (mat_active == mat) {
+          mat_nr_active = i;
+          break;
+        }
+      }
+      if (mat_nr_active == -1) {
+        continue;
+      }
+    }
+
     bool changed = false;
     if (ob->type == OB_MESH) {
       BMEditMesh *em = BKE_editmesh_from_object(ob);
@@ -234,7 +260,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
         BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
           if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
             changed = true;
-            efa->mat_nr = ob->actcol - 1;
+            efa->mat_nr = mat_nr_active;
           }
         }
       }
@@ -247,7 +273,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
         for (nu = nurbs->first; nu; nu = nu->next) {
           if (ED_curve_nurb_select_check(v3d, nu)) {
             changed = true;
-            nu->mat_nr = ob->actcol - 1;
+            nu->mat_nr = mat_nr_active;
           }
         }
       }
@@ -259,7 +285,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
       if (ef && BKE_vfont_select_get(ob, &selstart, &selend)) {
         for (i = selstart; i <= selend; i++) {
           changed = true;
-          ef->textbufinfo[i].mat_nr = ob->actcol;
+          ef->textbufinfo[i].mat_nr = mat_nr_active + 1;
         }
       }
     }
@@ -284,7 +310,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = material_slot_assign_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -313,7 +339,7 @@ static int material_slot_de_select(bContext *C, bool select)
     else {
       /* Find the first matching material.
        * Note: there may be multiple but that's not a common use case. */
-      for (short i = 0; i < ob->totcol; i++) {
+      for (int i = 0; i < ob->totcol; i++) {
         const Material *mat = BKE_object_material_get(ob, i + 1);
         if (mat_active == mat) {
           mat_nr_active = i;
@@ -439,17 +465,27 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = ED_object_context(C);
-  Material ***matar;
+  Material ***matar_obdata;
 
-  if (!ob || !(matar = BKE_object_material_array(ob))) {
+  if (!ob || !(matar_obdata = BKE_object_material_array_p(ob))) {
     return OPERATOR_CANCELLED;
   }
 
+  BLI_assert(ob->totcol == *BKE_object_material_len_p(ob));
+
+  Material ***matar_object = &ob->mat;
+
+  Material **matar = MEM_callocN(sizeof(*matar) * (size_t)ob->totcol, __func__);
+  for (int i = ob->totcol; i--;) {
+    matar[i] = ob->matbits[i] ? (*matar_object)[i] : (*matar_obdata)[i];
+  }
+
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
-    if (ob != ob_iter && BKE_object_material_array(ob_iter)) {
-      if (ob->data != ob_iter->data) {
-        BKE_object_material_array_assign(bmain, ob_iter, matar, ob->totcol);
-      }
+    if (ob != ob_iter && BKE_object_material_array_p(ob_iter)) {
+      /* If we are using the same obdata, we only assign slots in ob_iter that are using object
+       * materials, and not obdata ones. */
+      const bool is_same_obdata = ob->data == ob_iter->data;
+      BKE_object_material_array_assign(bmain, ob_iter, &matar, ob->totcol, is_same_obdata);
 
       if (ob_iter->totcol == ob->totcol) {
         ob_iter->actcol = ob->actcol;
@@ -459,6 +495,8 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
     }
   }
   CTX_DATA_END;
+
+  MEM_freeN(matar);
 
   return OPERATOR_FINISHED;
 }
@@ -481,7 +519,7 @@ static int material_slot_move_exec(bContext *C, wmOperator *op)
 {
   Object *ob = ED_object_context(C);
 
-  unsigned int *slot_remap;
+  uint *slot_remap;
   int index_pair[2];
 
   int dir = RNA_enum_get(op->ptr, "direction");
@@ -506,14 +544,14 @@ static int material_slot_move_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  slot_remap = MEM_mallocN(sizeof(unsigned int) * ob->totcol, __func__);
+  slot_remap = MEM_mallocN(sizeof(uint) * ob->totcol, __func__);
 
   range_vn_u(slot_remap, ob->totcol, 0);
 
   slot_remap[index_pair[0]] = index_pair[1];
   slot_remap[index_pair[1]] = index_pair[0];
 
-  BKE_material_remap_object(ob, slot_remap);
+  BKE_object_material_remap(ob, slot_remap);
 
   MEM_freeN(slot_remap);
 
@@ -538,6 +576,7 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
   ot->description = "Move the active material up/down in the list";
 
   /* api callbacks */
+  ot->poll = ED_operator_object_active_local_editable;
   ot->exec = material_slot_move_exec;
 
   /* flags */
@@ -612,7 +651,7 @@ void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = material_slot_remove_unused_exec;
-  ot->poll = ED_operator_object_active_editable;
+  ot->poll = ED_operator_object_active_local_editable;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -681,6 +720,7 @@ void MATERIAL_OT_new(wmOperatorType *ot)
   ot->description = "Add a new material";
 
   /* api callbacks */
+  ot->poll = ED_operator_object_active_local_editable;
   ot->exec = new_material_exec;
 
   /* flags */
@@ -789,14 +829,16 @@ void WORLD_OT_new(wmOperatorType *ot)
 
 /********************** render layer operators *********************/
 
-static int view_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int view_layer_add_exec(bContext *C, wmOperator *op)
 {
   wmWindow *win = CTX_wm_window(C);
   Scene *scene = CTX_data_scene(C);
-  ViewLayer *view_layer = BKE_view_layer_add(scene, NULL);
+  ViewLayer *view_layer_current = WM_window_get_active_view_layer(win);
+  ViewLayer *view_layer_new = BKE_view_layer_add(
+      scene, view_layer_current->name, view_layer_current, RNA_enum_get(op->ptr, "type"));
 
   if (win) {
-    WM_window_set_active_view_layer(win, view_layer);
+    WM_window_set_active_view_layer(win, view_layer_new);
   }
 
   DEG_id_tag_update(&scene->id, 0);
@@ -808,6 +850,17 @@ static int view_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 
 void SCENE_OT_view_layer_add(wmOperatorType *ot)
 {
+  static EnumPropertyItem type_items[] = {
+      {VIEWLAYER_ADD_NEW, "NEW", 0, "New", "Add a new view layer"},
+      {VIEWLAYER_ADD_COPY, "COPY", 0, "Copy Settings", "Copy settings of current view layer"},
+      {VIEWLAYER_ADD_EMPTY,
+       "EMPTY",
+       0,
+       "Blank",
+       "Add a new view layer with all collections disabled"},
+      {0, NULL, 0, NULL, NULL},
+  };
+
   /* identifiers */
   ot->name = "Add View Layer";
   ot->idname = "SCENE_OT_view_layer_add";
@@ -815,9 +868,13 @@ void SCENE_OT_view_layer_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = view_layer_add_exec;
+  ot->invoke = WM_menu_invoke;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+
+  /* properties */
+  ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
 }
 
 static bool view_layer_remove_poll(bContext *C)
@@ -865,14 +922,14 @@ enum {
 
 static void light_cache_bake_tag_cache(Scene *scene, wmOperator *op)
 {
-  if (scene->eevee.light_cache != NULL) {
+  if (scene->eevee.light_cache_data != NULL) {
     int subset = RNA_enum_get(op->ptr, "subset");
     switch (subset) {
       case LIGHTCACHE_SUBSET_ALL:
-        scene->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_GRID | LIGHTCACHE_UPDATE_CUBE;
+        scene->eevee.light_cache_data->flag |= LIGHTCACHE_UPDATE_GRID | LIGHTCACHE_UPDATE_CUBE;
         break;
       case LIGHTCACHE_SUBSET_CUBE:
-        scene->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_CUBE;
+        scene->eevee.light_cache_data->flag |= LIGHTCACHE_UPDATE_CUBE;
         break;
       case LIGHTCACHE_SUBSET_DIRTY:
         /* Leave tag untouched. */
@@ -888,12 +945,17 @@ static int light_cache_bake_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
   /* no running blender, remove handler and pass through */
   if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
+    LightCache *lcache = scene->eevee.light_cache_data;
+    if (lcache && (lcache->flag & LIGHTCACHE_INVALID)) {
+      BKE_report(op->reports, RPT_ERROR, "Lightcache cannot allocate resources");
+      return OPERATOR_CANCELLED;
+    }
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
   }
 
   /* running render */
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
   }
   return OPERATOR_PASS_THROUGH;
@@ -1021,7 +1083,7 @@ static bool light_cache_free_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
 
-  return scene->eevee.light_cache;
+  return scene->eevee.light_cache_data;
 }
 
 static int light_cache_free_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1032,12 +1094,12 @@ static int light_cache_free_exec(bContext *C, wmOperator *UNUSED(op))
   wmWindowManager *wm = CTX_wm_manager(C);
   WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
 
-  if (!scene->eevee.light_cache) {
+  if (!scene->eevee.light_cache_data) {
     return OPERATOR_CANCELLED;
   }
 
-  EEVEE_lightcache_free(scene->eevee.light_cache);
-  scene->eevee.light_cache = NULL;
+  EEVEE_lightcache_free(scene->eevee.light_cache_data);
+  scene->eevee.light_cache_data = NULL;
 
   EEVEE_lightcache_info_update(&scene->eevee);
 
@@ -1623,13 +1685,13 @@ static int freestyle_get_modifier_type(PointerRNA *ptr)
   if (RNA_struct_is_a(ptr->type, &RNA_LineStyleColorModifier)) {
     return LS_MODIFIER_TYPE_COLOR;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_LineStyleAlphaModifier)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_LineStyleAlphaModifier)) {
     return LS_MODIFIER_TYPE_ALPHA;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_LineStyleThicknessModifier)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_LineStyleThicknessModifier)) {
     return LS_MODIFIER_TYPE_THICKNESS;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_LineStyleGeometryModifier)) {
+  if (RNA_struct_is_a(ptr->type, &RNA_LineStyleGeometryModifier)) {
     return LS_MODIFIER_TYPE_GEOMETRY;
   }
   return -1;

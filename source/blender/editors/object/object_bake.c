@@ -25,42 +25,40 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_world_types.h"
-#include "DNA_object_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_blender.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_report.h"
-#include "BKE_cdderivedmesh.h"
-#include "BKE_modifier.h"
-#include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h"
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
+#include "RE_multires_bake.h"
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
-#include "RE_multires_bake.h"
 
 #include "PIL_time.h"
 
-#include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
-#include "GPU_draw.h" /* GPU_free_image */
+#include "IMB_imbuf_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -156,7 +154,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
       ok = mmd->totlvl > 0;
 
       for (md = (ModifierData *)mmd->modifier.next; md && ok; md = md->next) {
-        if (modifier_isEnabled(scene, md, eModifierMode_Realtime)) {
+        if (BKE_modifier_is_enabled(scene, md, eModifierMode_Realtime)) {
           ok = false;
         }
       }
@@ -530,7 +528,7 @@ static void multiresbake_freejob(void *bkv)
     /* delete here, since this delete will be called from main thread */
     for (link = data->images.first; link; link = link->next) {
       Image *ima = (Image *)link->data;
-      GPU_free_image(ima);
+      BKE_image_free_gputextures(ima);
     }
 
     MEM_freeN(data->ob_image.array);
@@ -596,7 +594,7 @@ static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), const 
 
   /* running render */
   switch (event->type) {
-    case ESCKEY:
+    case EVT_ESCKEY:
       return OPERATOR_RUNNING_MODAL;
   }
   return OPERATOR_PASS_THROUGH;

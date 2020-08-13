@@ -23,6 +23,7 @@ set(INC
   ../blenkernel
   ../blenlib
   ../blenloader
+  ../gpu
   ../makesdna
   ../makesrna
   ../../../intern/guardedalloc
@@ -63,6 +64,7 @@ set(SRC
   intern/thumbs_blend.c
   intern/thumbs_font.c
   intern/util.c
+  intern/util_gpu.c
   intern/writeimage.c
 
   IMB_colormanagement.h
@@ -143,7 +145,7 @@ endif()
 
 if(WITH_CODEC_AVI)
   list(APPEND INC
-    ../avi
+    ../io/avi
   )
   list(APPEND LIB
     bf_avi

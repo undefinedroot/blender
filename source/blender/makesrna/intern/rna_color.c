@@ -18,8 +18,8 @@
  * \ingroup RNA
  */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "DNA_color_types.h"
 #include "DNA_texture_types.h"
@@ -49,10 +49,10 @@
 #  include "BKE_colorband.h"
 #  include "BKE_colortools.h"
 #  include "BKE_image.h"
+#  include "BKE_linestyle.h"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.h"
 #  include "BKE_sequencer.h"
-#  include "BKE_linestyle.h"
 
 #  include "DEG_depsgraph.h"
 
@@ -702,7 +702,7 @@ static float rna_CurveMapping_evaluateF(struct CurveMapping *cumap,
 
 static void rna_CurveMap_initialize(struct CurveMapping *cumap)
 {
-  BKE_curvemapping_initialize(cumap);
+  BKE_curvemapping_init(cumap);
 }
 #else
 

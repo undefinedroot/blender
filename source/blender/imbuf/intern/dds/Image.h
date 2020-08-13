@@ -27,11 +27,10 @@
 
 // This code is in the public domain -- castanyo@yahoo.es
 
-#ifndef __IMAGE_H__
-#define __IMAGE_H__
+#pragma once
 
-#include "Common.h"
 #include "Color.h"
+#include "Common.h"
 
 /// 32 bit RGBA image.
 class Image {
@@ -89,5 +88,3 @@ inline Color32 &Image::pixel(uint x, uint y)
 {
   return pixel(y * width() + x);
 }
-
-#endif /* __IMAGE_H__ */

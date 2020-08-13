@@ -16,16 +16,19 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_EXECUTIONGROUP_H__
-#define __COM_EXECUTIONGROUP_H__
+#pragma once
 
+#ifdef WITH_CXX_GUARDEDALLOC
+#  include "MEM_guardedalloc.h"
+#endif
+
+#include "BLI_rect.h"
+#include "COM_CompositorContext.h"
+#include "COM_Device.h"
+#include "COM_MemoryProxy.h"
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"
 #include <vector>
-#include "BLI_rect.h"
-#include "COM_MemoryProxy.h"
-#include "COM_Device.h"
-#include "COM_CompositorContext.h"
 
 using std::vector;
 
@@ -443,5 +446,3 @@ class ExecutionGroup {
   MEM_CXX_CLASS_ALLOC_FUNCS("COM:ExecutionGroup")
 #endif
 };
-
-#endif

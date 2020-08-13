@@ -21,18 +21,18 @@
  * \ingroup bke
  */
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
 #include <string.h>
 
-#include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_idprop.h"
-#include "BKE_library.h"
+#include "BKE_lib_id.h"
 
 #include "CLG_log.h"
 
@@ -55,10 +55,10 @@ static size_t idp_size_table[] = {
     1, /*strings*/
     sizeof(int),
     sizeof(float),
-    sizeof(float) * 3,  /*Vector type, deprecated*/
-    sizeof(float) * 16, /*Matrix type, deprecated*/
-    0,                  /*arrays don't have a fixed size*/
-    sizeof(ListBase),   /*Group type*/
+    sizeof(float[3]),  /*Vector type, deprecated*/
+    sizeof(float[16]), /*Matrix type, deprecated*/
+    0,                 /*arrays don't have a fixed size*/
+    sizeof(ListBase),  /*Group type*/
     sizeof(void *),
     sizeof(double),
 };
@@ -104,7 +104,7 @@ IDProperty *IDP_CopyIDPArray(const IDProperty *array, const int flag)
      * which doesn't work here.  instead, simply copy the
      * contents of the new structure into the array cell,
      * then free it.  this makes for more maintainable
-     * code than simply reimplementing the copy functions
+     * code than simply re-implementing the copy functions
      * in this loop.*/
     tmp = IDP_CopyProperty_ex(GETPROP(narray, i), flag);
     memcpy(GETPROP(narray, i), tmp, sizeof(IDProperty));
@@ -181,7 +181,7 @@ void IDP_ResizeIDPArray(IDProperty *prop, int newlen)
       prop->len = newlen;
       return;
     }
-    else if (newlen >= prop->len) {
+    if (newlen >= prop->len) {
       prop->len = newlen;
       return;
     }
@@ -732,14 +732,14 @@ void IDP_FreeFromGroup(IDProperty *group, IDProperty *prop)
   IDP_FreeProperty(prop);
 }
 
-IDProperty *IDP_GetPropertyFromGroup(IDProperty *prop, const char *name)
+IDProperty *IDP_GetPropertyFromGroup(const IDProperty *prop, const char *name)
 {
   BLI_assert(prop->type == IDP_GROUP);
 
   return (IDProperty *)BLI_findstring(&prop->data.group, name, offsetof(IDProperty, name));
 }
 /** same as above but ensure type match */
-IDProperty *IDP_GetPropertyTypeFromGroup(IDProperty *prop, const char *name, const char type)
+IDProperty *IDP_GetPropertyTypeFromGroup(const IDProperty *prop, const char *name, const char type)
 {
   IDProperty *idprop = IDP_GetPropertyFromGroup(prop, name);
   return (idprop && idprop->type == type) ? idprop : NULL;
@@ -800,7 +800,7 @@ void IDP_RelinkProperty(struct IDProperty *prop)
 
   switch (prop->type) {
     case IDP_GROUP: {
-      for (IDProperty *loop = prop->data.group.first; loop; loop = loop->next) {
+      LISTBASE_FOREACH (IDProperty *, loop, &prop->data.group) {
         IDP_RelinkProperty(loop);
       }
       break;
@@ -836,17 +836,16 @@ IDProperty *IDP_GetProperties(ID *id, const bool create_if_needed)
   if (id->properties) {
     return id->properties;
   }
-  else {
-    if (create_if_needed) {
-      id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
-      id->properties->type = IDP_GROUP;
-      /* don't overwrite the data's name and type
-       * some functions might need this if they
-       * don't have a real ID, should be named elsewhere - Campbell */
-      /* strcpy(id->name, "top_level_group");*/
-    }
-    return id->properties;
+
+  if (create_if_needed) {
+    id->properties = MEM_callocN(sizeof(IDProperty), "IDProperty");
+    id->properties->type = IDP_GROUP;
+    /* don't overwrite the data's name and type
+     * some functions might need this if they
+     * don't have a real ID, should be named elsewhere - Campbell */
+    /* strcpy(id->name, "top_level_group");*/
   }
+  return id->properties;
 }
 
 /**
@@ -856,10 +855,10 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
   if (prop1 == NULL && prop2 == NULL) {
     return true;
   }
-  else if (prop1 == NULL || prop2 == NULL) {
+  if (prop1 == NULL || prop2 == NULL) {
     return is_strict ? false : true;
   }
-  else if (prop1->type != prop2->type) {
+  if (prop1->type != prop2->type) {
     return false;
   }
 
@@ -1127,6 +1126,47 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
   IDP_ClearProperty(prop);
   if (reference != NULL) {
     IDP_MergeGroup(prop, reference, true);
+  }
+}
+
+/**
+ * Loop through all ID properties in hierarchy of given \a id_property_root included.
+ *
+ * \note Container types (groups and arrays) are processed after applying the callback on them.
+ *
+ * \param type_filter: If not 0, only apply callback on properties of matching types, see
+ * IDP_TYPE_FILTER_ enum in DNA_ID.h.
+ */
+void IDP_foreach_property(IDProperty *id_property_root,
+                          const int type_filter,
+                          IDPForeachPropertyCallback callback,
+                          void *user_data)
+{
+  if (!id_property_root) {
+    return;
+  }
+
+  if (type_filter == 0 || (1 << id_property_root->type) & type_filter) {
+    callback(id_property_root, user_data);
+  }
+
+  /* Recursive call into container types of ID properties. */
+  switch (id_property_root->type) {
+    case IDP_GROUP: {
+      LISTBASE_FOREACH (IDProperty *, loop, &id_property_root->data.group) {
+        IDP_foreach_property(loop, type_filter, callback, user_data);
+      }
+      break;
+    }
+    case IDP_IDPARRAY: {
+      IDProperty *loop = IDP_Array(id_property_root);
+      for (int i = 0; i < id_property_root->len; i++) {
+        IDP_foreach_property(&loop[i], type_filter, callback, user_data);
+      }
+      break;
+    }
+    default:
+      break; /* Nothing to do here with other types of IDProperties... */
   }
 }
 

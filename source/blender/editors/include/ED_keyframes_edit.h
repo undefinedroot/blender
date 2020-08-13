@@ -21,8 +21,13 @@
  * \ingroup editors
  */
 
-#ifndef __ED_KEYFRAMES_EDIT_H__
-#define __ED_KEYFRAMES_EDIT_H__
+#pragma once
+
+#include "ED_anim_api.h" /* for enum eAnimFilter_Flags */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct BezTriple;
 struct FCurve;
@@ -100,8 +105,8 @@ typedef enum eEditKeyframes_Mirror {
 typedef struct KeyframeEdit_LassoData {
   rctf *rectf_scaled;
   const rctf *rectf_view;
-  const int (*mcords)[2];
-  int mcords_tot;
+  const int (*mcoords)[2];
+  int mcoords_len;
 } KeyframeEdit_LassoData;
 
 /* use with BEZT_OK_REGION_CIRCLE */
@@ -247,6 +252,12 @@ short ANIM_animchanneldata_keyframes_loop(KeyframeEditData *ked,
                                           KeyframeEditFunc key_cb,
                                           FcuEditFunc fcu_cb);
 
+/* Calls callback_fn() for each keyframe in each fcurve in the filtered animation context.
+ * Assumes the callback updates keys. */
+void ANIM_animdata_keyframe_callback(struct bAnimContext *ac,
+                                     eAnimFilter_Flags filter,
+                                     KeyframeEditFunc callback_fn);
+
 /* functions for making sure all keyframes are in good order */
 void ANIM_editkeyframes_refresh(struct bAnimContext *ac);
 
@@ -325,4 +336,6 @@ short paste_animedit_keys(struct bAnimContext *ac,
 
 /* ************************************************ */
 
-#endif /* __ED_KEYFRAMES_EDIT_H__ */
+#ifdef __cplusplus
+}
+#endif

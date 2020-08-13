@@ -44,8 +44,8 @@
  * use the maximum values to avoid real pointers colliding with magic numbers.
  */
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "BLI_sys_types.h"
 
@@ -253,10 +253,9 @@ bool BLI_smallhash_reinsert(SmallHash *sh, uintptr_t key, void *item)
     e->val = item;
     return false;
   }
-  else {
-    BLI_smallhash_insert(sh, key, item);
-    return true;
-  }
+
+  BLI_smallhash_insert(sh, key, item);
+  return true;
 }
 
 #ifdef USE_REMOVE

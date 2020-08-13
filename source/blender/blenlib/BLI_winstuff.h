@@ -17,8 +17,7 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_WINSTUFF_H__
-#define __BLI_WINSTUFF_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -31,17 +30,8 @@
 
 #define WIN32_LEAN_AND_MEAN
 
-#ifndef WIN32_SKIP_HKEY_PROTECTION
-#  undef HKEY
-#  define HKEY WIN32_HKEY /* prevent competing definitions */
-#  include <windows.h>
-#  undef HKEY
-#else
-#  include <windows.h>
-#endif
+#include <windows.h>
 
-#undef near
-#undef far
 #undef rad
 #undef rad1
 #undef rad2
@@ -59,7 +49,10 @@
 extern "C" {
 #endif
 
-#define _USE_MATH_DEFINES
+#if !defined(_USE_MATH_DEFINES)
+#  define _USE_MATH_DEFINES
+#endif
+
 #define MAXPATHLEN MAX_PATH
 
 #ifndef S_ISREG
@@ -83,13 +76,6 @@ extern "C" {
 #endif
 
 typedef unsigned int mode_t;
-
-/* use functions that take a 64 bit offset for files larger than 4GB */
-#include <stdio.h>
-#define fseek(stream, offset, origin) _fseeki64(stream, offset, origin)
-#define ftell(stream) _ftelli64(stream)
-#define lseek(fd, offset, origin) _lseeki64(fd, offset, origin)
-#define tell(fd) _telli64(fd)
 
 #ifndef _SSIZE_T_
 #  define _SSIZE_T_
@@ -124,5 +110,3 @@ int BLI_getInstallationDir(char *str);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __BLI_WINSTUFF_H__ */

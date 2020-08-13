@@ -22,11 +22,10 @@
  * Declaration of GHOST_CallbackEventConsumer class.
  */
 
-#ifndef __GHOST_CALLBACKEVENTCONSUMER_H__
-#define __GHOST_CALLBACKEVENTCONSUMER_H__
+#pragma once
 
-#include "GHOST_IEventConsumer.h"
 #include "GHOST_C-api.h"
+#include "GHOST_IEventConsumer.h"
 
 /**
  * Event consumer that will forward events to a call-back routine.
@@ -66,5 +65,3 @@ class GHOST_CallbackEventConsumer : public GHOST_IEventConsumer {
   MEM_CXX_CLASS_ALLOC_FUNCS("GHOST:GHOST_CallbackEventConsumer")
 #endif
 };
-
-#endif  // __GHOST_CALLBACKEVENTCONSUMER_H__

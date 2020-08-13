@@ -21,13 +21,13 @@
  * \ingroup texnodes
  */
 
-#include "node_texture_util.h"
 #include "NOD_texture.h"
+#include "node_texture_util.h"
 
 /* **************** CURVE Time  ******************** */
 
 /* custom1 = sfra, custom2 = efra */
-static bNodeSocketTemplate time_outputs[] = {{SOCK_FLOAT, 0, N_("Value")}, {-1, 0, ""}};
+static bNodeSocketTemplate time_outputs[] = {{SOCK_FLOAT, N_("Value")}, {-1, ""}};
 
 static void time_colorfn(
     float *out, TexParams *p, bNode *node, bNodeStack **UNUSED(in), short UNUSED(thread))
@@ -39,7 +39,7 @@ static void time_colorfn(
     fac = (p->cfra - node->custom1) / (float)(node->custom2 - node->custom1);
   }
 
-  BKE_curvemapping_initialize(node->storage);
+  BKE_curvemapping_init(node->storage);
   fac = BKE_curvemapping_evaluateF(node->storage, 0, fac);
   out[0] = CLAMPIS(fac, 0.0f, 1.0f);
 }
@@ -77,13 +77,13 @@ void register_node_type_tex_curve_time(void)
 
 /* **************** CURVE RGB  ******************** */
 static bNodeSocketTemplate rgb_inputs[] = {
-    {SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+    {-1, ""},
 };
 
 static bNodeSocketTemplate rgb_outputs[] = {
-    {SOCK_RGBA, 0, N_("Color")},
-    {-1, 0, ""},
+    {SOCK_RGBA, N_("Color")},
+    {-1, ""},
 };
 
 static void rgb_colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, short thread)

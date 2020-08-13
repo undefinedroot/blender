@@ -23,10 +23,13 @@
  * GPU element list (AKA index buffer)
  */
 
-#ifndef __GPU_ELEMENT_H__
-#define __GPU_ELEMENT_H__
+#pragma once
 
 #include "GPU_primitive.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define GPU_TRACK_INDEX_RANGE 1
 
@@ -109,4 +112,6 @@ int GPU_indexbuf_primitive_len(GPUPrimType prim_type);
     } \
   } while (0)
 
-#endif /* __GPU_ELEMENT_H__ */
+#ifdef __cplusplus
+}
+#endif

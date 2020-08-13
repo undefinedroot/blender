@@ -16,16 +16,15 @@
  * Copyright 2011, Blender Foundation.
  */
 
-#ifndef __COM_COMPOSITORCONTEXT_H__
-#define __COM_COMPOSITORCONTEXT_H__
+#pragma once
 
-#include <vector>
-#include <string>
-#include "DNA_node_types.h"
-#include "DNA_color_types.h"
 #include "BLI_rect.h"
-#include "DNA_scene_types.h"
 #include "COM_defines.h"
+#include "DNA_color_types.h"
+#include "DNA_node_types.h"
+#include "DNA_scene_types.h"
+#include <string>
+#include <vector>
 
 /**
  * \brief Overall context of the compositor
@@ -269,5 +268,3 @@ class CompositorContext {
     return (this->getbNodeTree()->flag & NTREE_COM_GROUPNODE_BUFFER) != 0;
   }
 };
-
-#endif

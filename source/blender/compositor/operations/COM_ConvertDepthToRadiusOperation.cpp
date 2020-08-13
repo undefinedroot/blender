@@ -17,8 +17,8 @@
  */
 
 #include "COM_ConvertDepthToRadiusOperation.h"
-#include "BLI_math.h"
 #include "BKE_camera.h"
+#include "BLI_math.h"
 #include "DNA_camera_types.h"
 
 ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation() : NodeOperation()
@@ -39,9 +39,8 @@ float ConvertDepthToRadiusOperation::determineFocalDistance()
     this->m_cam_lens = camera->lens;
     return BKE_camera_object_dof_distance(this->m_cameraObject);
   }
-  else {
-    return 10.0f;
-  }
+
+  return 10.0f;
 }
 
 void ConvertDepthToRadiusOperation::initExecution()

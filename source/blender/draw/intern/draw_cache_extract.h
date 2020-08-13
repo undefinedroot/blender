@@ -20,8 +20,9 @@
  * \ingroup draw
  */
 
-#ifndef __DRAW_CACHE_EXTRACT_H__
-#define __DRAW_CACHE_EXTRACT_H__
+#pragma once
+
+struct TaskGraph;
 
 /* Vertex Group Selection and display options */
 typedef struct DRW_MeshWeightState {
@@ -34,28 +35,38 @@ typedef struct DRW_MeshWeightState {
   /* Set of all selected bones for Multipaint. */
   bool *defgroup_sel; /* [defgroup_len] */
   int defgroup_sel_count;
+
+  /* Set of all locked and unlocked deform bones for Lock Relative mode. */
+  bool *defgroup_locked;   /* [defgroup_len] */
+  bool *defgroup_unlocked; /* [defgroup_len] */
 } DRW_MeshWeightState;
 
 /* DRW_MeshWeightState.flags */
 enum {
   DRW_MESH_WEIGHT_STATE_MULTIPAINT = (1 << 0),
   DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE = (1 << 1),
+  DRW_MESH_WEIGHT_STATE_LOCK_RELATIVE = (1 << 2),
 };
 
 typedef struct DRW_MeshCDMask {
   uint32_t uv : 8;
   uint32_t tan : 8;
   uint32_t vcol : 8;
+  uint32_t sculpt_vcol : 8;
   uint32_t orco : 1;
   uint32_t tan_orco : 1;
   /** Edit uv layer is from the base edit mesh as
    *  modifiers could remove it. (see T68857) */
   uint32_t edit_uv : 1;
 } DRW_MeshCDMask;
+/* Keep `DRW_MeshCDMask` struct within an `uint64_t`.
+ * bit-wise and atomic operations are used to compare and update the struct.
+ * See `mesh_cd_layers_type_*` functions. */
+BLI_STATIC_ASSERT(sizeof(DRW_MeshCDMask) <= sizeof(uint64_t), "DRW_MeshCDMask exceeds 64 bits")
 
 typedef enum eMRIterType {
   MR_ITER_LOOPTRI = 1 << 0,
-  MR_ITER_LOOP = 1 << 1,
+  MR_ITER_POLY = 1 << 1,
   MR_ITER_LEDGE = 1 << 2,
   MR_ITER_LVERT = 1 << 3,
 } eMRIterType;
@@ -158,8 +169,7 @@ typedef enum DRWBatchFlag {
   MBC_WIRE_EDGES = (1 << 23),
   MBC_WIRE_LOOPS = (1 << 24),
   MBC_WIRE_LOOPS_UVS = (1 << 25),
-  MBC_SURF_PER_MAT = (1 << 26),
-  MBC_SKIN_ROOTS = (1 << 27),
+  MBC_SKIN_ROOTS = (1 << 26),
 } DRWBatchFlag;
 
 #define MBC_EDITUV \
@@ -244,16 +254,17 @@ typedef struct MeshBatchCache {
   bool no_loose_wire;
 } MeshBatchCache;
 
-void mesh_buffer_cache_create_requested(MeshBatchCache *cache,
+void mesh_buffer_cache_create_requested(struct TaskGraph *task_graph,
+                                        MeshBatchCache *cache,
                                         MeshBufferCache mbc,
                                         Mesh *me,
                                         const bool is_editmode,
+                                        const bool is_paint_mode,
                                         const float obmat[4][4],
                                         const bool do_final,
                                         const bool do_uvedit,
                                         const bool use_subsurf_fdots,
                                         const DRW_MeshCDMask *cd_layer_used,
+                                        const Scene *scene,
                                         const ToolSettings *ts,
                                         const bool use_hide);
-
-#endif /* __DRAW_CACHE_EXTRACT_H__ */

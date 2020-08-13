@@ -17,14 +17,17 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_TIMECODE_H__
-#define __BLI_TIMECODE_H__
+#pragma once
 
 /** \file
  * \ingroup BLI
  */
 
 #include "BLI_compiler_attrs.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 size_t BLI_timecode_string_from_time(char *str,
                                      const size_t len,
@@ -42,4 +45,6 @@ size_t BLI_timecode_string_from_time_seconds(char *str,
                                              const int brevity_level,
                                              const float time_seconds) ATTR_NONNULL();
 
-#endif /* __BLI_TIMECODE_H__ */
+#ifdef __cplusplus
+}
+#endif

@@ -17,12 +17,17 @@
  * All rights reserved.
  */
 
-#ifndef __BLI_BITMAP_H__
-#define __BLI_BITMAP_H__
+#pragma once
 
 /** \file
  * \ingroup bli
  */
+
+#include "BLI_utildefines.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef unsigned int BLI_bitmap;
 
@@ -109,4 +114,6 @@ void BLI_bitmap_copy_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits);
 void BLI_bitmap_and_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits);
 void BLI_bitmap_or_all(BLI_bitmap *dst, const BLI_bitmap *src, size_t bits);
 
+#ifdef __cplusplus
+}
 #endif

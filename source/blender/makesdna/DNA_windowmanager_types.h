@@ -21,13 +21,13 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_WINDOWMANAGER_TYPES_H__
-#define __DNA_WINDOWMANAGER_TYPES_H__
+#pragma once
 
 #include "DNA_listBase.h"
 #include "DNA_screen_types.h"
-#include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vec_types.h"
+#include "DNA_xr_types.h"
 
 #include "DNA_ID.h"
 
@@ -119,6 +119,16 @@ typedef struct ReportTimerInfo {
   float widthfac;
 } ReportTimerInfo;
 
+//#ifdef WITH_XR_OPENXR
+typedef struct wmXrData {
+  /** Runtime information for managing Blender specific behaviors. */
+  struct wmXrRuntimeData *runtime;
+  /** Permanent session settings (draw mode, feature toggles, etc). Stored in files and accessible
+   * even before the session runs. */
+  XrSessionSettings session_settings;
+} wmXrData;
+//#endif
+
 /* reports need to be before wmWindowManager */
 
 /* windowmanager is saved, tag WMAN */
@@ -180,12 +190,15 @@ typedef struct wmWindowManager {
 
   struct wmMsgBus *message_bus;
 
+  //#ifdef WITH_XR_OPENXR
+  wmXrData xr;
+  //#endif
 } wmWindowManager;
 
 /* wmWindowManager.initialized */
 enum {
-  WM_WINDOW_IS_INITIALIZED = (1 << 0),
-  WM_KEYCONFIG_IS_INITIALIZED = (1 << 1),
+  WM_WINDOW_IS_INIT = (1 << 0),
+  WM_KEYCONFIG_IS_INIT = (1 << 1),
 };
 
 /* wmWindowManager.outliner_sync_select_dirty */
@@ -239,11 +252,10 @@ typedef struct wmWindow {
   /** Window coords. */
   short posx, posy, sizex, sizey;
   /** Borderless, full. */
-  short windowstate;
-  /** Multiscreen... no idea how to store yet. */
-  short monitor;
+  char windowstate;
   /** Set to 1 if an active window, for quick rejects. */
-  short active;
+  char active;
+  char _pad0[4];
   /** Current mouse cursor type. */
   short cursor;
   /** Previous cursor when setting modal one. */
@@ -252,9 +264,10 @@ typedef struct wmWindow {
   short modalcursor;
   /** Cursor grab mode. */
   short grabcursor;
-  /** Internal: tag this for extra mousemove event,
+  /** Internal: tag this for extra mouse-move event,
    * makes cursors/buttons active on UI switching. */
-  short addmousemove;
+  char addmousemove;
+  char tag_cursor_refresh;
 
   /** Winid also in screens, is for retrieving this window after read. */
   int winid;
@@ -370,6 +383,7 @@ enum {
   KMI_EXPANDED = (1 << 1),
   KMI_USER_MODIFIED = (1 << 2),
   KMI_UPDATE = (1 << 3),
+  KMI_REPEAT_IGNORE = (1 << 4),
 };
 
 /** #wmKeyMapItem.maptype */
@@ -542,5 +556,3 @@ enum {
    * (the regiontype is maintained to prevent errors) */
   OP_IS_MODAL_CURSOR_REGION = (1 << 3),
 };
-
-#endif /* __DNA_WINDOWMANAGER_TYPES_H__ */

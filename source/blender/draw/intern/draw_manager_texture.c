@@ -61,17 +61,21 @@ static bool drw_texture_format_supports_framebuffer(eGPUTextureFormat format)
 
 void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags)
 {
-  GPU_texture_bind(tex, 0);
+  if (tex == NULL) {
+    return;
+  }
+
   if (flags & DRW_TEX_MIPMAP) {
     GPU_texture_mipmap_mode(tex, true, flags & DRW_TEX_FILTER);
+    GPU_texture_bind(tex, 0);
     GPU_texture_generate_mipmap(tex);
+    GPU_texture_unbind(tex);
   }
   else {
     GPU_texture_filter_mode(tex, flags & DRW_TEX_FILTER);
   }
-  GPU_texture_wrap_mode(tex, flags & DRW_TEX_WRAP);
+  GPU_texture_wrap_mode(tex, flags & DRW_TEX_WRAP, true);
   GPU_texture_compare_mode(tex, flags & DRW_TEX_COMPARE);
-  GPU_texture_unbind(tex);
 }
 
 GPUTexture *DRW_texture_create_1d(int w,
@@ -119,7 +123,14 @@ GPUTexture *DRW_texture_create_cube(int w,
 {
   GPUTexture *tex = GPU_texture_create_cube(w, format, fpixels, NULL);
   drw_texture_set_parameters(tex, flags);
+  return tex;
+}
 
+GPUTexture *DRW_texture_create_cube_array(
+    int w, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels)
+{
+  GPUTexture *tex = GPU_texture_create_cube_array(w, d, format, fpixels, NULL);
+  drw_texture_set_parameters(tex, flags);
   return tex;
 }
 
@@ -132,6 +143,13 @@ GPUTexture *DRW_texture_pool_query_2d(int w,
   GPUTexture *tex = GPU_viewport_texture_pool_query(DST.viewport, engine_type, w, h, format);
 
   return tex;
+}
+
+GPUTexture *DRW_texture_pool_query_fullscreen(eGPUTextureFormat format,
+                                              DrawEngineType *engine_type)
+{
+  const float *size = DRW_viewport_size_get();
+  return DRW_texture_pool_query_2d((int)size[0], (int)size[1], format, engine_type);
 }
 
 void DRW_texture_ensure_fullscreen_2d(GPUTexture **tex,

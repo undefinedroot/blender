@@ -14,18 +14,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BKE_OBJECT_H__
-#define __BKE_OBJECT_H__
+#pragma once
 
 /** \file
  * \ingroup bke
  * \brief General operations, lookup, etc. for blender objects.
  */
+
+#include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
+
+#include "DNA_object_enums.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "BLI_compiler_attrs.h"
 
 struct Base;
 struct BoundBox;
@@ -46,8 +49,6 @@ struct ShaderFxData;
 struct View3D;
 struct ViewLayer;
 
-#include "DNA_object_enums.h"
-
 void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
@@ -64,7 +65,6 @@ void BKE_object_free_particlesystems(struct Object *ob);
 void BKE_object_free_softbody(struct Object *ob);
 void BKE_object_free_curve_cache(struct Object *ob);
 
-void BKE_object_free(struct Object *ob);
 void BKE_object_free_derived_caches(struct Object *ob);
 void BKE_object_free_caches(struct Object *object);
 
@@ -77,9 +77,7 @@ bool BKE_object_shaderfx_use_time(struct Object *ob, struct ShaderFxData *md);
 
 bool BKE_object_support_modifier_type_check(const struct Object *ob, int modifier_type);
 
-void BKE_object_link_modifiers(struct Scene *scene,
-                               struct Object *ob_dst,
-                               const struct Object *ob_src);
+void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_modifiers(struct Object *ob, const int flag);
 void BKE_object_free_shaderfx(struct Object *ob, const int flag);
 
@@ -111,7 +109,6 @@ typedef enum eObjectVisibilityResult {
 
 int BKE_object_visibility(const struct Object *ob, const int dag_eval_mode);
 
-void BKE_object_init(struct Object *ob, const short ob_type);
 struct Object *BKE_object_add_only_object(struct Main *bmain, int type, const char *name)
     ATTR_NONNULL(1) ATTR_RETURNS_NONNULL;
 struct Object *BKE_object_add(struct Main *bmain,
@@ -135,40 +132,32 @@ struct Object *BKE_object_add_for_data(struct Main *bmain,
 void *BKE_object_obdata_add_from_type(struct Main *bmain, int type, const char *name)
     ATTR_NONNULL(1);
 
-void BKE_object_copy_data(struct Main *bmain,
-                          struct Object *ob_dst,
-                          const struct Object *ob_src,
-                          const int flag);
 struct Object *BKE_object_copy(struct Main *bmain, const struct Object *ob);
-void BKE_object_make_local(struct Main *bmain, struct Object *ob, const bool lib_local);
-void BKE_object_make_local_ex(struct Main *bmain,
-                              struct Object *ob,
-                              const bool lib_local,
-                              const bool clear_proxy);
 bool BKE_object_is_libdata(const struct Object *ob);
 bool BKE_object_obdata_is_libdata(const struct Object *ob);
 
 struct Object *BKE_object_duplicate(struct Main *bmain,
-                                    const struct Object *ob,
-                                    const int dupflag);
+                                    struct Object *ob,
+                                    uint dupflag,
+                                    const uint duplicate_options);
 
 void BKE_object_obdata_size_init(struct Object *ob, const float scale);
 
-void BKE_object_scale_to_mat3(struct Object *ob, float mat[3][3]);
-void BKE_object_rot_to_mat3(const struct Object *ob, float mat[3][3], bool use_drot);
-void BKE_object_mat3_to_rot(struct Object *ob, float mat[3][3], bool use_compat);
-void BKE_object_to_mat3(struct Object *ob, float mat[3][3]);
-void BKE_object_to_mat4(struct Object *ob, float mat[4][4]);
+void BKE_object_scale_to_mat3(struct Object *ob, float r_mat[3][3]);
+void BKE_object_rot_to_mat3(const struct Object *ob, float r_mat[3][3], bool use_drot);
+void BKE_object_mat3_to_rot(struct Object *ob, float r_mat[3][3], bool use_compat);
+void BKE_object_to_mat3(struct Object *ob, float r_mat[3][3]);
+void BKE_object_to_mat4(struct Object *ob, float r_mat[4][4]);
 void BKE_object_apply_mat4(struct Object *ob,
-                           float mat[4][4],
+                           const float mat[4][4],
                            const bool use_compat,
                            const bool use_parent);
 void BKE_object_apply_mat4_ex(struct Object *ob,
-                              float mat[4][4],
+                              const float mat[4][4],
                               struct Object *parent,
-                              float parentinv[4][4],
+                              const float parentinv[4][4],
                               const bool use_compat);
-void BKE_object_matrix_local_get(struct Object *ob, float mat[4][4]);
+void BKE_object_matrix_local_get(struct Object *ob, float r_mat[4][4]);
 
 bool BKE_object_pose_context_check(const struct Object *ob);
 struct Object *BKE_object_pose_armature_get(struct Object *ob);
@@ -198,7 +187,7 @@ struct Base **BKE_object_pose_base_array_get(struct ViewLayer *view_layer,
                                              struct View3D *v3d,
                                              unsigned int *r_bases_len);
 
-void BKE_object_get_parent_matrix(struct Object *ob, struct Object *par, float parentmat[4][4]);
+void BKE_object_get_parent_matrix(struct Object *ob, struct Object *par, float r_parentmat[4][4]);
 void BKE_object_where_is_calc(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(struct Depsgraph *depsgraph,
                                  struct Scene *scene,
@@ -209,7 +198,7 @@ void BKE_object_where_is_calc_time(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *ob,
                                    float ctime);
-void BKE_object_where_is_calc_mat4(struct Object *ob, float obmat[4][4]);
+void BKE_object_where_is_calc_mat4(struct Object *ob, float r_obmat[4][4]);
 
 /* possibly belong in own moduke? */
 struct BoundBox *BKE_boundbox_alloc_unit(void);
@@ -217,12 +206,12 @@ void BKE_boundbox_init_from_minmax(struct BoundBox *bb, const float min[3], cons
 void BKE_boundbox_calc_center_aabb(const struct BoundBox *bb, float r_cent[3]);
 void BKE_boundbox_calc_size_aabb(const struct BoundBox *bb, float r_size[3]);
 void BKE_boundbox_minmax(const struct BoundBox *bb,
-                         float obmat[4][4],
+                         const float obmat[4][4],
                          float r_min[3],
                          float r_max[3]);
 
 struct BoundBox *BKE_object_boundbox_get(struct Object *ob);
-void BKE_object_dimensions_get(struct Object *ob, float vec[3]);
+void BKE_object_dimensions_get(struct Object *ob, float r_vec[3]);
 void BKE_object_dimensions_set_ex(struct Object *ob,
                                   const float value[3],
                                   int axis_mask,
@@ -243,7 +232,7 @@ bool BKE_object_minmax_dupli(struct Depsgraph *depsgraph,
 
 /* sometimes min-max isn't enough, we need to loop over each point */
 void BKE_object_foreach_display_point(struct Object *ob,
-                                      float obmat[4][4],
+                                      const float obmat[4][4],
                                       void (*func_cb)(const float[3], void *),
                                       void *user_data);
 void BKE_scene_foreach_display_point(struct Depsgraph *depsgraph,
@@ -287,9 +276,10 @@ void BKE_object_eval_uber_transform(struct Depsgraph *depsgraph, struct Object *
 void BKE_object_eval_uber_data(struct Depsgraph *depsgraph,
                                struct Scene *scene,
                                struct Object *ob);
+void BKE_object_eval_assign_data(struct Object *object, struct ID *data, bool is_owned);
 
 void BKE_object_eval_boundbox(struct Depsgraph *depsgraph, struct Object *object);
-void BKE_object_synchronize_to_original(struct Depsgraph *depsgraph, struct Object *object);
+void BKE_object_sync_to_original(struct Depsgraph *depsgraph, struct Object *object);
 
 void BKE_object_eval_ptcache_reset(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
@@ -299,7 +289,6 @@ void BKE_object_eval_transform_all(struct Depsgraph *depsgraph,
                                    struct Scene *scene,
                                    struct Object *object);
 
-void BKE_object_eval_update_shading(struct Depsgraph *depsgraph, struct Object *object);
 void BKE_object_data_select_update(struct Depsgraph *depsgraph, struct ID *object_data);
 void BKE_object_select_update(struct Depsgraph *depsgraph, struct Object *object);
 
@@ -327,8 +316,7 @@ int BKE_object_obdata_texspace_get(struct Object *ob,
                                    float **r_loc,
                                    float **r_size);
 
-struct Mesh *BKE_object_get_evaluated_mesh(const struct Depsgraph *depsgraph, struct Object *ob);
-struct Mesh *BKE_object_get_final_mesh(struct Object *object);
+struct Mesh *BKE_object_get_evaluated_mesh(struct Object *object);
 struct Mesh *BKE_object_get_pre_modified_mesh(struct Object *object);
 struct Mesh *BKE_object_get_original_mesh(struct Object *object);
 
@@ -371,7 +359,8 @@ typedef enum eObRelationTypes {
   OB_REL_CHILDREN = (1 << 2),           /* immediate children */
   OB_REL_CHILDREN_RECURSIVE = (1 << 3), /* All children */
   OB_REL_MOD_ARMATURE = (1 << 4),       /* Armatures related to the selected objects */
-  OB_REL_SCENE_CAMERA = (1 << 5), /* you might want the scene camera too even if unselected? */
+  /* OB_REL_SCENE_CAMERA = (1 << 5), */ /* you might want the scene camera too even if unselected?
+                                         */
 } eObRelationTypes;
 
 typedef enum eObjectSet {
@@ -407,7 +396,7 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const struct Object *ob,
  * The result is owned by the object.
  *
  * The mesh will be freed when object is re-evaluated or is destroyed. It is possible to force to
- * clear memory sued by this mesh by calling BKE_object_to_mesh_clear().
+ * clear memory used by this mesh by calling BKE_object_to_mesh_clear().
  *
  * If preserve_all_data_layers is truth then the modifier stack is re-evaluated to ensure it
  * preserves all possible custom data layers.
@@ -420,8 +409,8 @@ struct Mesh *BKE_object_to_mesh(struct Depsgraph *depsgraph,
 
 void BKE_object_to_mesh_clear(struct Object *object);
 
+void BKE_object_check_uuids_unique_and_report(const struct Object *object);
+
 #ifdef __cplusplus
 }
-#endif
-
 #endif

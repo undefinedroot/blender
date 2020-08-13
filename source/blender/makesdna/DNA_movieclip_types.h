@@ -21,16 +21,15 @@
  * \ingroup DNA
  */
 
-#ifndef __DNA_MOVIECLIP_TYPES_H__
-#define __DNA_MOVIECLIP_TYPES_H__
+#pragma once
+
+#include "DNA_ID.h"
+#include "DNA_color_types.h" /* for color management */
+#include "DNA_tracking_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "DNA_ID.h"
-#include "DNA_tracking_types.h"
-#include "DNA_color_types.h" /* for color management */
 
 struct AnimData;
 struct ImBuf;
@@ -64,8 +63,8 @@ typedef struct MovieClipProxy {
 typedef struct MovieClip_RuntimeGPUTexture {
   void *next, *prev;
   MovieClipUser user;
-  /** Not written in file 4 = TEXTARGET_COUNT. */
-  struct GPUTexture *gputexture[4];
+  /** Not written in file 3 = TEXTARGET_COUNT. */
+  struct GPUTexture *gputexture[3];
 } MovieClip_RuntimeGPUTexture;
 
 typedef struct MovieClip_Runtime {
@@ -78,7 +77,7 @@ typedef struct MovieClip {
   struct AnimData *adt;
 
   /** File path, 1024 = FILE_MAX. */
-  char name[1024];
+  char filepath[1024];
 
   /** Sequence or movie. */
   int source;
@@ -179,12 +178,6 @@ enum {
   MCLIP_SRC_MOVIE = 2,
 };
 
-/* MovieClip->selection types */
-enum {
-  MCLIP_SEL_NONE = 0,
-  MCLIP_SEL_TRACK = 1,
-};
-
 /* MovieClip->flag */
 enum {
   MCLIP_USE_PROXY = (1 << 0),
@@ -213,6 +206,4 @@ enum {
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

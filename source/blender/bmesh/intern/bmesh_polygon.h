@@ -14,8 +14,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BMESH_POLYGON_H__
-#define __BMESH_POLYGON_H__
+#pragma once
 
 /** \file
  * \ingroup bmesh
@@ -60,10 +59,14 @@ void BM_face_calc_tangent_edge_diagonal(const BMFace *f, float r_plane[3]) ATTR_
 void BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
 void BM_face_calc_tangent_auto(const BMFace *f, float r_plane[3]) ATTR_NONNULL();
 void BM_face_calc_center_bounds(const BMFace *f, float center[3]) ATTR_NONNULL();
-void BM_face_calc_center_median(const BMFace *f, float center[3]) ATTR_NONNULL();
+void BM_face_calc_center_bounds_vcos(const BMesh *bm,
+                                     const BMFace *f,
+                                     float r_center[3],
+                                     float const (*vertexCos)[3]) ATTR_NONNULL();
+void BM_face_calc_center_median(const BMFace *f, float r_center[3]) ATTR_NONNULL();
 void BM_face_calc_center_median_vcos(const BMesh *bm,
                                      const BMFace *f,
-                                     float r_cent[3],
+                                     float r_center[3],
                                      float const (*vertexCos)[3]) ATTR_NONNULL();
 void BM_face_calc_center_median_weighted(const BMFace *f, float center[3]) ATTR_NONNULL();
 
@@ -110,5 +113,3 @@ void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4]) ATTR_NONNULL();
 
 void BM_vert_tri_calc_tangent_edge(BMVert *verts[3], float r_tangent[3]);
 void BM_vert_tri_calc_tangent_edge_pair(BMVert *verts[3], float r_tangent[3]);
-
-#endif /* __BMESH_POLYGON_H__ */

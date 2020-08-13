@@ -21,8 +21,7 @@
  * \ingroup GHOST
  */
 
-#ifndef __GHOST_CONTEXTGLX_H__
-#define __GHOST_CONTEXTGLX_H__
+#pragma once
 
 #include "GHOST_Context.h"
 
@@ -38,6 +37,9 @@
 #endif
 
 class GHOST_ContextGLX : public GHOST_Context {
+  /* XR code needs low level graphics data to send to OpenXR. */
+  friend class GHOST_XrGraphicsBindingOpenGL;
+
  public:
   /**
    * Constructor.
@@ -125,5 +127,3 @@ class GHOST_ContextGLX : public GHOST_Context {
 /* used to get GLX info */
 int GHOST_X11_GL_GetAttributes(
     int *attribs, int attribs_max, bool is_stereo_visual, bool need_alpha, bool for_fb_config);
-
-#endif  // __GHOST_CONTEXTGLX_H__

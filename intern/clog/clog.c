@@ -18,23 +18,23 @@
  * \ingroup clog
  */
 
+#include <assert.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <assert.h>
 
 /* Disable for small single threaded programs
  * to avoid having to link with pthreads. */
 #ifdef WITH_CLOG_PTHREADS
-#  include <pthread.h>
 #  include "atomic_ops.h"
+#  include <pthread.h>
 #endif
 
 /* For 'isatty' to check for color. */
 #if defined(__unix__) || defined(__APPLE__) || defined(__HAIKU__)
-#  include <unistd.h>
 #  include <sys/time.h>
+#  include <unistd.h>
 #endif
 
 #if defined(_MSC_VER)
@@ -153,7 +153,6 @@ static void clg_str_reserve(CLogStringBuf *cstr, const uint len)
       cstr->data = data;
       cstr->is_alloc = true;
     }
-    cstr->len_alloc = len;
   }
 }
 
@@ -179,26 +178,34 @@ static void clg_str_vappendf(CLogStringBuf *cstr, const char *fmt, va_list args)
 {
   /* Use limit because windows may use '-1' for a formatting error. */
   const uint len_max = 65535;
-  uint len_avail = (cstr->len_alloc - cstr->len);
-  if (len_avail == 0) {
-    len_avail = CLOG_BUF_LEN_INIT;
-    clg_str_reserve(cstr, len_avail);
-  }
   while (true) {
+    uint len_avail = cstr->len_alloc - cstr->len;
+
     va_list args_cpy;
     va_copy(args_cpy, args);
     int retval = vsnprintf(cstr->data + cstr->len, len_avail, fmt, args_cpy);
     va_end(args_cpy);
-    if (retval != -1) {
-      cstr->len += retval;
+
+    if (retval < 0) {
+      /* Some encoding error happened, not much we can do here, besides skipping/cancelling this
+       * message. */
+      break;
+    }
+    else if ((uint)retval <= len_avail) {
+      /* Copy was successful. */
+      cstr->len += (uint)retval;
       break;
     }
     else {
-      len_avail *= 2;
-      if (len_avail >= len_max) {
+      /* vsnprintf was not successful, due to lack of allocated space, retval contains expected
+       * length of the formated string, use it to allocate required amount of memory. */
+      uint len_alloc = cstr->len + (uint)retval;
+      if (len_alloc >= len_max) {
+        /* Safe upper-limit, just in case... */
         break;
       }
-      clg_str_reserve(cstr, len_avail);
+      clg_str_reserve(cstr, len_alloc);
+      len_avail = cstr->len_alloc - cstr->len;
     }
   }
 }

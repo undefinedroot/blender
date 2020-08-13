@@ -18,9 +18,9 @@
 
 #include <limits.h>
 
+#include "BLI_utildefines.h"
 #include "COM_FastGaussianBlurOperation.h"
 #include "MEM_guardedalloc.h"
-#include "BLI_utildefines.h"
 
 FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
@@ -47,18 +47,17 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(
   if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
     return true;
   }
-  else {
-    if (this->m_iirgaus) {
-      return false;
-    }
-    else {
-      newInput.xmin = 0;
-      newInput.ymin = 0;
-      newInput.xmax = this->getWidth();
-      newInput.ymax = this->getHeight();
-    }
-    return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+
+  if (this->m_iirgaus) {
+    return false;
   }
+
+  newInput.xmin = 0;
+  newInput.ymin = 0;
+  newInput.xmax = this->getWidth();
+  newInput.ymax = this->getHeight();
+
+  return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
 void FastGaussianBlurOperation::initExecution()
@@ -282,12 +281,12 @@ bool FastGaussianBlurValueOperation::determineDependingAreaOfInterest(
   if (this->m_iirgaus) {
     return false;
   }
-  else {
-    newInput.xmin = 0;
-    newInput.ymin = 0;
-    newInput.xmax = this->getWidth();
-    newInput.ymax = this->getHeight();
-  }
+
+  newInput.xmin = 0;
+  newInput.ymin = 0;
+  newInput.xmax = this->getWidth();
+  newInput.ymax = this->getHeight();
+
   return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 

@@ -17,6 +17,7 @@
 
 set(INC
   ../include
+  ../space_sequencer
   ../../blenkernel
   ../../blenlib
   ../../blentranslation
@@ -39,6 +40,7 @@ set(INC_SYS
 set(SRC
   ed_transverts.c
   ed_util.c
+  ed_util_imbuf.c
   gizmo_utils.c
   numinput.c
   select_utils.c
@@ -61,7 +63,6 @@ set(SRC
   ../include/ED_keyframes_edit.h
   ../include/ED_keyframing.h
   ../include/ED_lattice.h
-  ../include/ED_logic.h
   ../include/ED_markers.h
   ../include/ED_mask.h
   ../include/ED_mball.h
@@ -91,8 +92,10 @@ set(SRC
   ../include/ED_undo.h
   ../include/ED_userpref.h
   ../include/ED_util.h
+  ../include/ED_util_imbuf.h
   ../include/ED_uvedit.h
   ../include/ED_view3d.h
+  ../include/ED_view3d_offscreen.h
   ../include/UI_icons.h
   ../include/UI_interface.h
   ../include/UI_interface_icons.h

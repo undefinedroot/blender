@@ -25,8 +25,8 @@
  * For single linked lists see 'BLI_linklist.h'
  */
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -162,9 +162,8 @@ bool BLI_remlink_safe(ListBase *listbase, void *vlink)
     BLI_remlink(listbase, vlink);
     return true;
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 /**
@@ -485,7 +484,8 @@ bool BLI_listbase_link_move(ListBase *listbase, void *vlink, int step)
   BLI_assert(BLI_findindex(listbase, link) != -1);
 
   /* find link to insert before/after */
-  for (int i = 0; i < ABS(step); i++) {
+  const int abs_step = abs(step);
+  for (int i = 0; i < abs_step; i++) {
     hook = is_up ? hook->prev : hook->next;
     if (!hook) {
       return false;

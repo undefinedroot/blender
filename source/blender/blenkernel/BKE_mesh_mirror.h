@@ -17,14 +17,17 @@
  * All rights reserved.
  */
 
-#ifndef __BKE_MESH_MIRROR_H__
-#define __BKE_MESH_MIRROR_H__
+#pragma once
 
 /** \file
  * \ingroup bke
  */
 
 #include "BLI_utildefines.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct MirrorModifierData;
 struct ModifierEvalContext;
@@ -42,4 +45,6 @@ struct Mesh *BKE_mesh_mirror_apply_mirror_on_axis(struct MirrorModifierData *mmd
                                                   const struct Mesh *mesh,
                                                   int axis);
 
-#endif /* __BKE_MESH_MIRROR_H__ */
+#ifdef __cplusplus
+}
+#endif

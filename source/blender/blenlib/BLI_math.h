@@ -20,8 +20,7 @@
  *
  * */
 
-#ifndef __BLI_MATH_H__
-#define __BLI_MATH_H__
+#pragma once
 
 /** \file
  * \ingroup bli
@@ -66,12 +65,10 @@
 
 #include "BLI_math_base.h"
 #include "BLI_math_color.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
-#include "BLI_math_vector.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_interp.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_math_solvers.h"
 #include "BLI_math_statistics.h"
-
-#endif /* __BLI_MATH_H__ */
+#include "BLI_math_vector.h"

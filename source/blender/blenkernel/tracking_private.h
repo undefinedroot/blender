@@ -24,10 +24,13 @@
  * by multiple tracking files but which should not be public.
  */
 
-#ifndef __TRACKING_PRIVATE_H__
-#define __TRACKING_PRIVATE_H__
+#pragma once
 
 #include "BLI_threads.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct GHash;
 struct MovieTracking;
@@ -145,4 +148,6 @@ TrackingImageAccessor *tracking_image_accessor_new(MovieClip *clips[MAX_ACCESSOR
                                                    int start_frame);
 void tracking_image_accessor_destroy(TrackingImageAccessor *accessor);
 
-#endif /* __TRACKING_PRIVATE_H__ */
+#ifdef __cplusplus
+}
+#endif
