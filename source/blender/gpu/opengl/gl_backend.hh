@@ -27,7 +27,10 @@
 
 #include "BLI_vector.hh"
 
+#include "gl_batch.hh"
 #include "gl_context.hh"
+#include "gl_drawlist.hh"
+#include "gl_shader.hh"
 
 namespace blender {
 namespace gpu {
@@ -40,6 +43,21 @@ class GLBackend : public GPUBackend {
   GPUContext *context_alloc(void *ghost_window)
   {
     return new GLContext(ghost_window, shared_orphan_list_);
+  };
+
+  Batch *batch_alloc(void)
+  {
+    return new GLBatch();
+  };
+
+  DrawList *drawlist_alloc(int list_length)
+  {
+    return new GLDrawList(list_length);
+  };
+
+  Shader *shader_alloc(const char *name)
+  {
+    return new GLShader(name);
   };
 
   /* TODO remove */

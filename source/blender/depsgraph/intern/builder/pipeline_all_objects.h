@@ -13,29 +13,32 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 by Mike Erwin.
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
  * All rights reserved.
  */
 
 /** \file
- * \ingroup gpu
- *
- * GPU geometry batch
- * Contains VAOs + VBOs + Shader representing a drawable entity.
+ * \ingroup depsgraph
  */
 
 #pragma once
 
-#include "GPU_batch.h"
-#include "GPU_context.h"
-#include "GPU_shader_interface.h"
+#include "pipeline_view_layer.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace blender {
+namespace deg {
 
-void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface);
+/* Builds a dependency graph that contains all objects in the view layer.
+ * This is contrary to the regular ViewLayerBuilderPipeline, which is limited to visible objects
+ * (and their dependencies). */
+class AllObjectsBuilderPipeline : public ViewLayerBuilderPipeline {
+ public:
+  AllObjectsBuilderPipeline(::Depsgraph *graph);
 
-#ifdef __cplusplus
-}
-#endif
+ protected:
+  virtual unique_ptr<DepsgraphNodeBuilder> construct_node_builder() override;
+  virtual unique_ptr<DepsgraphRelationBuilder> construct_relation_builder() override;
+};
+
+}  // namespace deg
+}  // namespace blender

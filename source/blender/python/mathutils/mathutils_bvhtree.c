@@ -549,8 +549,7 @@ static bool py_bvhtree_overlap_cb(void *userdata, int index_a, int index_b, int 
     }
   }
 
-  return (isect_tri_tri_v3(
-              UNPACK3(tri_a_co), UNPACK3(tri_b_co), ix_pair[0], ix_pair[1]) &&
+  return (isect_tri_tri_v3(UNPACK3(tri_a_co), UNPACK3(tri_b_co), ix_pair[0], ix_pair[1]) &&
           ((verts_shared == 0) || (len_squared_v3v3(ix_pair[0], ix_pair[1]) > data->epsilon)));
 }
 
@@ -1054,7 +1053,7 @@ static Mesh *bvh_get_mesh(const char *funcname,
       }
 
       *r_free_mesh = true;
-      return mesh_create_eval_final_render(depsgraph, scene, ob, &data_masks);
+      return mesh_create_eval_final(depsgraph, scene, ob, &data_masks);
     }
     if (ob_eval != NULL) {
       if (use_cage) {

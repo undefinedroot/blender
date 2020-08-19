@@ -12,6 +12,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2020 Blender Foundation.
+ * All rights reserved.
  */
 
 /** \file
@@ -20,35 +23,18 @@
 
 #pragma once
 
-#include "GPU_shader_interface.h"
+#include "MEM_guardedalloc.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace blender {
+namespace gpu {
 
-struct GPUShader {
-  /** Handle for full program (links shader stages below). */
-  GLuint program;
+class DrawList {
+ public:
+  virtual ~DrawList(){};
 
-  /** Handle for vertex shader. */
-  GLuint vertex;
-  /** Handle for geometry shader. */
-  GLuint geometry;
-  /** Handle for fragment shader. */
-  GLuint fragment;
-
-  /** Cached uniform & attribute interface for shader. */
-  GPUShaderInterface *interface;
-
-  int feedback_transform_type;
-#ifndef NDEBUG
-  char name[64];
-#endif
+  virtual void append(GPUBatch *batch, int i_first, int i_count) = 0;
+  virtual void submit() = 0;
 };
 
-/* XXX do not use it. Special hack to use OCIO with batch API. */
-GPUShader *immGetShader(void);
-
-#ifdef __cplusplus
-}
-#endif
+}  // namespace gpu
+}  // namespace blender
